@@ -259,6 +259,16 @@ EOF
 	cd "$PROJECT_ROOT/src/webstore"
     poetry run python manage.py collectstatic --noinput
 
+    # ------------------------------------------------------------
+    # 🔧 Fix the paths and owner for the file to www-data:www-data
+    # ------------------------------------------------------------
+    log "🔧 Setting ownership and permissions for project files..."
+    chown -R www-data:www-data "$PROJECT_ROOT"
+    # Optional: secure permissions
+    find "$PROJECT_ROOT" -type d -exec chmod 755 {} \;
+    find "$PROJECT_ROOT" -type f -exec chmod 644 {} \;
+    echo "✅ Ownership set to www-data:www-data for $PROJECT_ROOT"
+
 	# ----------------------------
 	# 🌐 Nginx + Certbot
 	# ----------------------------
@@ -500,6 +510,32 @@ fi
 # if ! grep -q 'direnv hook' "$SHELL_RC"; then
 #   echo 'eval "$(direnv hook bash)"' >> "$SHELL_RC"
 # fi
+
+# Save the current active venv path
+# export ACTIVE_POETRY_VENV=""
+#
+# function cd() {
+#   builtin cd "$@" || return
+#
+#   # Deactivate previous venv if active
+#   if [[ -n "$ACTIVE_POETRY_VENV" ]]; then
+#     if [[ "$VIRTUAL_ENV" == "$ACTIVE_POETRY_VENV" ]]; then
+#       echo "🚫 Deactivating Poetry venv: $ACTIVE_POETRY_VENV"
+#       deactivate
+#     fi
+#     export ACTIVE_POETRY_VENV=""
+#   fi
+#
+#   # Check for pyproject.toml
+#   if [[ -f "pyproject.toml" ]]; then
+#     VENV_PATH=$(poetry env info -p 2>/dev/null)
+#     if [[ -n "$VENV_PATH" && -f "$VENV_PATH/bin/activate" ]]; then
+#       echo "🔁 Activating Poetry venv: $VENV_PATH"
+#       source "$VENV_PATH/bin/activate"
+#       export ACTIVE_POETRY_VENV="$VENV_PATH"
+#     fi
+#   fi
+# }
 
 # Summary
 echo_step "Deployment finished successfully!"
