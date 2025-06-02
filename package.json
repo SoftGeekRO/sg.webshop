@@ -1,7 +1,7 @@
 {
-  "name": "sgs.tachogeek.jsapp",
+  "name": "sgs.webstore.js",
   "version": "1.0.0",
-  "description": "TachoGeek javascript application for tweaking the online store",
+  "description": "Online webstore javascript frontend application",
   "main": "webpack.config.js",
   "scripts": {
     "lint": "jshint src/",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SoftGeekRO/sgs.tg.jsapp.git"
+    "url": "git@github.com:SoftGeekRO/sg.webshop.git"
   },
   "private": true,
   "dependencies": {

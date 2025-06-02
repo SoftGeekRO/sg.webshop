@@ -22,9 +22,14 @@
 	<link rel="stylesheet" href="//cdn.softgeek.ro/errorPages/css/style.css"
 				crossOrigin="anonymous">
 	<script>
-		// Directly injected by Nginx
-		window.documentError = <!--# echo var="error_code" -->;
-		window.sgs_redirect_url = '';
+		// Pass error data to JavaScript
+		window.documentError = {
+			code: <!--# echo var="error_code" -->,
+			status: "<!--# echo var="error_status" -->",
+			description: "<!--# echo var="error_desc" -->",
+			request: "<!--# echo var="full_request" -->"
+		};
+		window.sgs_redirect_url = "<!--# echo var="request_uri" -->";
 	</script>
 </head>
 <body>
@@ -91,6 +96,7 @@
 				crossorigin="anonymous"></script>
 <script
 	src="//cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script src="//cdn.softgeek.ro/errorPages/lib/errorCodes.js"></script>
 <script src="//cdn.softgeek.ro/errorPages/js/app.js" type="module"
 				crossOrigin="anonymous"></script>
 </body>

@@ -40,13 +40,15 @@ function SGSQuery(errorNumber, phrase, description, spec_title, spec_href) {
 
 	if (window.documentError === null) { return; }
 
-	let _error_ = window.documentError;
+  let _error_ = window.documentError,
+    errorObj = getStatusCodeInfo(_error_.code);
 
-	$(this.errorNumber).html(_error_.code);
-	$(this.phrase).html(_error_.phrase);
-	$(this.description).html(_error_.description);
-	$(this.spec_title).html(_error_.spec_title);
-	$(this.spec_href).attr({'href': _error_.spec_href});
+  $(this.errorNumber).html(_error_.code);
+  $(this.phrase).html(errorObj.phrase);
+  $(this.description).html(errorObj.description);
+  $(this.spec_title).html(errorObj.spec_title);
+  $(this.spec_href).attr({ 'href': errorObj.spec_href });
+
 }
 
 $(function () {

@@ -18,8 +18,7 @@ SUPERVISOR_PATH="/etc/supervisor/conf.d/"
 GUNICORN_SOCK_FILE="$PROJECT_ROOT/run/gunicorn.sock"
 VENV_DIR="$PROJECT_ROOT/.venv"
 
-WWW_PATH="/var/www"
-ERROR_PAGES_PATH="$WWW_PATH/errorPages"
+ERROR_PAGES_PATH="$PROJECT_ROOT/utils/nginx/errorPages"
 
 NGINX_PATH="/etc/nginx"
 NGINX_CONF="$NGINX_PATH/nginx.conf"
@@ -49,17 +48,17 @@ fi
 
 # Gunicorn tuning based on hardware
 if (( $(echo "$RAM_GB < 1" | bc -l) )); then
-    GUNICORN_WORKERS=1
+	GUNICORN_WORKERS=1
     GUNICORN_THREADS=1
 elif [ "$RAM_GB" -le 1 ]; then
-  GUNICORN_WORKERS=2
-  GUNICORN_THREADS=1
+	GUNICORN_WORKERS=2
+	GUNICORN_THREADS=1
 elif [ "$RAM_GB" -le 2 ]; then
-  GUNICORN_WORKERS=3
-  GUNICORN_THREADS=2
+	GUNICORN_WORKERS=3
+	GUNICORN_THREADS=2
 else
-  GUNICORN_WORKERS=$(($CPU_CORES * 2))
-  GUNICORN_THREADS=4
+	GUNICORN_WORKERS=$(($CPU_CORES * 2))
+	GUNICORN_THREADS=4
 fi
 
 # Emoji Logger
@@ -72,12 +71,11 @@ function echo_step {
 }
 
 usage() {
-	log "Usage: $0 domain.com [web_root_path] [php_fpm_socket]"
-    log "  domain.com domain2.com  - Domain name to configure"
-    log "  --webshop_path          - (Optional) Document root path, defaults to current directory"
-    log "  --php_fpm_socket        - (Optional) PHP-FPM socket path, default /run/php/php8.3-fpm.sock"
-    log "  --phpmyadmin            - subdomain for phpmyadmin ex: pma.domain.com"
-    log "  -h|--help               - display this help information"
+	log "Usage: $0 domain.com [project-root] [gunicorn-socket]"
+    log "  domain.com domain2.com	- Domain name to configure"
+    log "  --project-root        	- (Optional) Project root path, defaults to current directory ($PROJECT_ROOT/)"
+    log "  --gunicorn-socket      	- (Optional) path to Gunicorn socket, default $GUNICORN_SOCK_FILE"
+    log "  -h|--help               	- display this help information"
   exit 1
 }
 
@@ -97,16 +95,12 @@ DOMAINS=()
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --webshop_path)
-      WEBSHOP_PATH="$2"
+    --project-root )
+      PROJECT_ROOT="$2"
       shift 2
       ;;
-    --php-socket)
-      PHP_FPM_SOCKET="$2"
-      shift 2
-      ;;
-    --phpmyadmin)
-      PMA_DOMAIN="$2"
+    --gunicorn-socket)
+      GUNICORN_SOCK_FILE="$2"
       shift 2
       ;;
     -h|--help)
@@ -264,19 +258,6 @@ else
 	log "ℹ️  $NGINX_GZIP_CONF already exists, skipped creation"
 fi
 
-if [ ! -f "$NGINX_ERROR_PAGES" ]; then
-  log "🔧 Creating error pages config..."
-  tee "$NGINX_ERROR_PAGES" > /dev/null <<EOF
-error_page 400 401 403 404 405 408 429 500 501 502 503 504 /error.php;
-location = /error.html {
-  internal;
-  ssi on;
-  set \$error_code \$status;
-  root $ERROR_PAGES_PATH;
-}
-EOF
-fi
-
 if [ ! -f "$NGINX_DEFAULT_SERVER" ]; then
     log "\n🌐 Setting up default server."
     tee "$NGINX_DEFAULT_SERVER" > /dev/null <<EOF
@@ -318,7 +299,6 @@ server {
   listen [::]:80 http2;
 
   server_name $DOMAIN www.$DOMAIN;
-  #root $WEBROOT_PATH;
   index index.php index.html;
 
   include $NGINX_ERROR_PAGES;
@@ -348,9 +328,21 @@ server {
   add_header X-Content-Type-Options nosniff;
   add_header X-Frame-Options DENY;
 
-  include $NGINX_ERROR_PAGES;
-
   include $NGINX_GZIP_CONF;
+
+  # Enable SSI globally or inside error locations only
+  ssi on;
+
+  error_page 400 401 403 404 405 408 429 500 501 502 503 504 /error.html;
+  location = /error.html {
+    internal;
+    ssi on;
+    # Set variables that will be available to SSI
+    set \$error_code \$status;
+    set \$error_status "\$status";
+    set \$full_request "\$request";
+    root $ERROR_PAGES_PATH;
+  }
 
   location /static/ {
     alias $PROJECT_ROOT/src/webstore/static/;
@@ -359,14 +351,14 @@ server {
   }
 
   location /media/ {
-  	alias $PROJECT_ROOT/src/webstore/media/;
-  	access_log off;
-  	expires 30d;
+    alias $PROJECT_ROOT/src/webstore/media/;
+    access_log off;
+    expires 30d;
   }
 
   location / {
-  	include proxy_params;
-  	proxy_pass http://unix:$GUNICORN_SOCK_FILE;
+    include proxy_params;
+    proxy_pass http://unix:$GUNICORN_SOCK_FILE;
   }
 
   # Optional: handle .well-known for Let's Encrypt
@@ -376,7 +368,7 @@ server {
   }
 
   location ~ /\.(git|env|ht) {
-  	deny all;
+    deny all;
   }
 }
 EOF
