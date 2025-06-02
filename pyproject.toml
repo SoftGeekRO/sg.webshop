@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "sg-webstore"
 version = "0.1.0"
-description = ""
+description = "Online webstore developed in Django"
 readme = ["README.md"]
-authors = ["SoulRaven <1303303+soulraven@users.noreply.github.com>"]
+authors = [ "SoulRaven <1303303+soulraven@users.noreply.github.com>", ]
 license = "GPL-3.0-or-later"
 package-mode = false
 

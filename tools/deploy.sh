@@ -5,8 +5,6 @@ set -e
 # Load environment variables
 source "$(dirname "$0")/project.env"
 
-#===--- UNDER THIS LINE DON'T MODIFY ---===
-
 # Emoji Logger
 log() {
   echo -e "\033[1;34m🔹 $1\033[0m"
@@ -29,7 +27,6 @@ fi
 # ===== Configuration =====
 log "🔧 Setting up configuration..."
 ACTION=$1
-MODE=${1:-dev}  # pass 'prod' as first argument for production
 
 # Get absolute path to the directory where this script is located (e.g., /opt/webstore/tools)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -52,7 +49,6 @@ POETRY_PYTHON_DEPENDENCY=(
 	python3-dev
 )
 
-PYTHON_VERSION="3.12.3"
 PYTHON_MAJOR_MINOR="$(echo $PYTHON_VERSION | cut -d. -f1,2)"  # 3.12
 PYTHON_BIN="python$PYTHON_MAJOR_MINOR"  # -> python3.12
 PYTHON_INSTALL_DIR="/usr/local/bin/python$PYTHON_VERSION"
@@ -72,21 +68,6 @@ if (( RAM_MB < 1024 )); then
     RAM_SIZE_TXT="${RAM_MB} MB"
 else
     RAM_SIZE_TXT="${RAM_GB} GB"
-fi
-
-# Gunicorn tuning based on hardware
-if (( $(echo "$RAM_GB < 1" | bc -l) )); then
-    GUNICORN_WORKERS=1
-    GUNICORN_THREADS=1
-elif [ "$RAM_GB" -le 1 ]; then
-  GUNICORN_WORKERS=2
-  GUNICORN_THREADS=1
-elif [ "$RAM_GB" -le 2 ]; then
-  GUNICORN_WORKERS=3
-  GUNICORN_THREADS=2
-else
-  GUNICORN_WORKERS=$(($CPU_CORES * 2))
-  GUNICORN_THREADS=4
 fi
 
 if [[ -z "$ACTION" ]]; then
@@ -233,7 +214,7 @@ if [[ "$ACTION" == "install" ]]; then
 	if [ ! -d "$VENV_DIR" ]; then
 		log "🔧 Create virtual environment for poetry"
 		# Ensure Python version in Poetry
-    	poetry env use $PYTHON_BIN || echo "⚠️ Could not set Poetry Python version"
+    	poetry env use "$(command -v $PYTHON_BIN)" || log "⚠️ Could not set Poetry Python version"
 	fi
 
 	# Install project dependencies
@@ -328,214 +309,6 @@ else
   log "Usage: sudo $0 [install|uninstall]"
   exit 1
 fi
-
-# # ===== System-wide install only in production =====
-# if [ "$MODE" = "prod" ]; then
-#   echo "📦 Installing system packages..."
-#   sudo apt update && sudo apt install -y \
-#     python3 python3.10-venv python3-venv python3-pip \
-#     nginx mysql-server curl nodejs npm \
-#     certbot python3-certbot-nginx \
-#     build-essential libmysqlclient-dev \
-#     supervisor
-#
-#   echo "🛢️ Setting up MySQL database..."
-#   sudo mysql -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-#   sudo mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
-#   sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
-#   sudo mysql -e "FLUSH PRIVILEGES;"
-# fi
-#
-# # ===== Project Setup =====
-# echo "📁 Creating project directory and virtual environment..."
-# mkdir -p "$PROJECT_DIR"
-# cd "$PROJECT_DIR"
-#
-#
-# source "$VENV_DIR/bin/activate"
-# pip install --upgrade pip
-# pip install django gunicorn
-# [ "$MODE" = "prod" ] && pip install mysqlclient
-#
-# # Check if manage.py exists
-# if [ ! -f "$MANAGE" ]; then
-#     echo "❌ No Django project found at $MANAGE. Please make sure the project is set up in the Git repo."
-#     exit 1
-# fi
-#
-# # ===== Settings Update =====
-# echo "⚙️ Updating Django settings..."
-# mkdir -p static media
-#
-# SETTINGS_FILE="$PROJECT_NAME/settings.py"
-#
-# if ! grep -q "STATIC_URL" "$SETTINGS_FILE"; then
-# cat <<EOF >> "$SETTINGS_FILE"
-#
-# import os
-# EOF
-# fi
-#
-# if [ "$MODE" = "prod" ]; then
-# cat <<EOF >> "$SETTINGS_FILE"
-#
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': '$DB_NAME',
-#         'USER': '$DB_USER',
-#         'PASSWORD': '$DB_PASS',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
-# EOF
-# else
-# cat <<EOF >> "$SETTINGS_FILE"
-#
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-# EOF
-# fi
-#
-# cat <<EOF >> "$SETTINGS_FILE"
-#
-# STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-#
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# EOF
-#
-# echo "🗃️ Applying Django migrations and collecting static files..."
-# python manage.py migrate
-# python manage.py collectstatic --noinput
-#
-# # ===== Webpack Setup (Production Only) =====
-# if [ "$MODE" = "prod" ]; then
-#   echo "🛠️ Setting up Webpack..."
-#   npm install --save-dev webpack webpack-cli
-#   mkdir -p assets/js
-#   [ ! -f assets/js/index.js ] && echo "console.log('Hello Webpack');" > assets/js/index.js
-#
-#   if [ ! -f webpack.config.js ]; then
-#     echo "📄 Creating webpack.config.js..."
-#     cat <<EOF > webpack.config.js
-# const path = require('path');
-#
-# module.exports = {
-#     entry: './assets/js/index.js',
-#     output: {
-#         filename: 'bundle.js',
-#         path: path.resolve(__dirname, 'static'),
-#     },
-#     mode: 'production'
-# };
-# EOF
-#   else
-#     echo "📄 webpack.config.js already exists, skipping."
-#   fi
-#
-#   npx webpack
-# fi
-#
-# # ===== Supervisor Config (Production Only) =====
-# if [ "$MODE" = "prod" ]; then
-#   echo "📋 Creating Supervisor config..."
-#   sudo tee /etc/supervisor/conf.d/$PROJECT_NAME.conf > /dev/null <<EOF
-# [program:$PROJECT_NAME]
-# directory=$PROJECT_DIR
-# command=$VENV_DIR/bin/gunicorn $PROJECT_NAME.wsgi:application \
-#     --bind unix:$SOCK_FILE \
-#     --workers $GUNICORN_WORKERS \
-#     --threads $GUNICORN_THREADS \
-#     --timeout 60
-# user=www-data
-# autostart=true
-# autorestart=true
-# stderr_logfile=/var/log/$PROJECT_NAME.err.log
-# stdout_logfile=/var/log/$PROJECT_NAME.out.log
-# environment=DJANGO_SETTINGS_MODULE="$PROJECT_NAME.settings",PYTHONUNBUFFERED="1"
-# EOF
-#
-#   sudo supervisorctl reread
-#   sudo supervisorctl update
-#   sudo supervisorctl restart $PROJECT_NAME
-#
-#   # ===== Nginx Config =====
-#   echo "🌐 Configuring Nginx..."
-#   sudo tee /etc/nginx/conf.d/$PROJECT_NAME > /dev/null <<EOF
-# server {
-#     listen 80;
-#     server_name $DOMAIN;
-#
-#     location /static/ {
-#         alias $PROJECT_DIR/static/;
-#     }
-#
-#     location /media/ {
-#         alias $PROJECT_DIR/media/;
-#     }
-#
-#     location / {
-#         include proxy_params;
-#         proxy_pass http://unix:$SOCK_FILE;
-#     }
-# 		location ~ /\.(git|env|ht) {
-# 			deny all;
-# 		}
-# }
-# EOF
-#
-#   sudo ln -sf /etc/nginx/conf.d/$PROJECT_NAME /etc/nginx/conf.d/
-#   sudo nginx -t && sudo systemctl reload nginx
-#
-#   # ===== SSL with Certbot =====
-#   echo "🔐 Setting up SSL with Certbot..."
-#   sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos -m admin@$DOMAIN || echo "⚠️ Certbot failed. Make sure DNS is pointing."
-# fi
-
-# # === DIRENV for automatic venv activation ===
-# echo "🧠 Configuring direnv for virtualenv autoload..."
-# echo "source .venv/bin/activate" > "$PROJECT_DIR/.envrc"
-# direnv allow "$PROJECT_DIR"
-#
-# # Add direnv hook to shell config if not present
-# SHELL_RC="$HOME/.bashrc"
-# [[ $SHELL == *zsh ]] && SHELL_RC="$HOME/.zshrc"
-# if ! grep -q 'direnv hook' "$SHELL_RC"; then
-#   echo 'eval "$(direnv hook bash)"' >> "$SHELL_RC"
-# fi
-
-# Save the current active venv path
-# export ACTIVE_POETRY_VENV=""
-#
-# function cd() {
-#   builtin cd "$@" || return
-#
-#   # Deactivate previous venv if active
-#   if [[ -n "$ACTIVE_POETRY_VENV" ]]; then
-#     if [[ "$VIRTUAL_ENV" == "$ACTIVE_POETRY_VENV" ]]; then
-#       echo "🚫 Deactivating Poetry venv: $ACTIVE_POETRY_VENV"
-#       deactivate
-#     fi
-#     export ACTIVE_POETRY_VENV=""
-#   fi
-#
-#   # Check for pyproject.toml
-#   if [[ -f "pyproject.toml" ]]; then
-#     VENV_PATH=$(poetry env info -p 2>/dev/null)
-#     if [[ -n "$VENV_PATH" && -f "$VENV_PATH/bin/activate" ]]; then
-#       echo "🔁 Activating Poetry venv: $VENV_PATH"
-#       source "$VENV_PATH/bin/activate"
-#       export ACTIVE_POETRY_VENV="$VENV_PATH"
-#     fi
-#   fi
-# }
 
 # Summary
 echo_step "Deployment finished successfully!"
