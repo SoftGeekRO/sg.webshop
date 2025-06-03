@@ -1,12 +1,12 @@
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-from webstore.settings import BASE_DIR
+from webstore.settings import ROOT_DIR
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": str(BASE_DIR.joinpath("db.sqlite3")),
+        "NAME": str(ROOT_DIR.joinpath("db.sqlite3")),
     }
 }
 

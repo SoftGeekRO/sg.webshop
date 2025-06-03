@@ -1,7 +1,7 @@
 # Logging
 # https://docs.djangoproject.com/en/2.2/topics/logging/
 
-from webstore.settings import BASE_DIR
+from webstore.settings import ROOT_DIR
 
 LOGGING = {
     "version": 1,
@@ -24,8 +24,7 @@ LOGGING = {
         "logfile": {
             "level": "DEBUG",
             "class": "logging.FileHandler",
-            # "filename": str(BASE_DIR.joinpath("log", "django.log")),
-            "filename": "../../var/log/django.log",
+            "filename": str(ROOT_DIR.joinpath("var", "log", "django.log")),
             "formatter": "verbose",
         },
         "email_admins": {
