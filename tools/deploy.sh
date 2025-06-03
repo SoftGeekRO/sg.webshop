@@ -219,21 +219,12 @@ if [[ "$ACTION" == "install" ]]; then
 
 	# Install project dependencies
 	if [ -f "pyproject.toml" ]; then
+		log "🔧 Install poetry dependencies"
+		poetry lock
 		poetry install
 	else
 		log "❌ pyproject.toml not found. Cannot continue deployment."
 		exit 1
-	fi
-
-	ENV_PATH="$PROJECT_ROOT/src/$PROJECT_NAME/.env"
-	if [ ! -f $ENV_PATH ]; then
-		log "🔧 Populate the .env file"
-		cat > "$ENV_PATH" <<EOF
-DEBUG=False
-SECRET_KEY=$(openssl rand -hex 32)
-ALLOWED_HOSTS=$DOMAIN
-DATABASE_URL=mysql://$DB_USER:$DB_PASS@localhost/$DB_NAME
-EOF
 	fi
 
 	log "📦 Collecting static files..."
@@ -316,4 +307,3 @@ log "🖥️	Hardware: CPU cores: ${CPU_CORES}, RAM: ${RAM_SIZE_TXT}"
 log "📁	Project path: ${PROJECT_ROOT}"
 log "🐍	Python version: $($PYTHON_BIN --version 2>&1)"
 log "🧰	Django version: $(poetry run python -m django --version 2>&1)"
-log "⚙️	Gunicorn workers: ${GUNICORN_WORKERS}, threads: ${GUNICORN_THREADS}"

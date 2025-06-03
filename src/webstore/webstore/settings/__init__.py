@@ -7,6 +7,9 @@ ENV = environ.get("DJANGO_ENV") or "development"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = PurePath(__file__).parent.parent.parent
+ROOT_DIR = (
+    BASE_DIR.parent.parent
+)  # TODO: in the future find something more logic and automagic
 
 base_settings = [
     "components/base.py",

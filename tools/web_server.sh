@@ -15,7 +15,7 @@ LOCAL_IP=$(ip route get 1 | awk '{print $7; exit}')
 # Default values
 
 SUPERVISOR_PATH="/etc/supervisor/conf.d/"
-GUNICORN_SOCK_FILE="$PROJECT_ROOT/run/gunicorn.sock"
+GUNICORN_SOCK_FILE="$PROJECT_ROOT/var/run/gunicorn.sock"
 VENV_DIR="$PROJECT_ROOT/.venv"
 
 ERROR_PAGES_PATH="$PROJECT_ROOT/utils/nginx/errorPages"
@@ -117,6 +117,19 @@ if [ ${#DOMAINS[@]} -eq 0 ]; then
   usage
 fi
 
+ENV_PATH="$PROJECT_ROOT/.env"
+if [ ! -f $ENV_PATH ]; then
+	log "🔧 Populate the .env file"
+	cat > "$ENV_PATH" <<EOF
+DEBUG=False
+SECRET_KEY=$(openssl rand -hex 32)
+ALLOWED_HOSTS=$DOMAIN[*]
+DATABASE_URL=mysql://$DB_USER:$DB_PASS@localhost/$DB_NAME
+EOF
+chown www-data:www-data "$ENV_PATH"
+chmod 600 "$ENV_PATH"
+fi
+
 if [ ! -f "$SUPERVISOR_PATH/$PROJECT_NAME.conf" ]; then
 	log "📋 Creating Supervisor config..."
 	chown www-data:www-data $VENV_DIR/bin/gunicorn
@@ -129,9 +142,9 @@ command=$VENV_DIR/bin/gunicorn $PROJECT_NAME.wsgi:application \
 user=www-data
 autostart=true
 autorestart=true
-stderr_logfile=$PROJECT_ROOT/log/$PROJECT_NAME.err.log
-stdout_logfile=$PROJECT_ROOT/log/$PROJECT_NAME.out.log
-environment=DJANGO_SETTINGS_MODULE="$PROJECT_NAME.settings",PYTHONUNBUFFERED="1"
+stderr_logfile=$PROJECT_ROOT/var/log/$PROJECT_NAME.err.log
+stdout_logfile=$PROJECT_ROOT/var/log/$PROJECT_NAME.out.log
+environment=DJANGO_SETTINGS_MODULE="$PROJECT_NAME.settings",PYTHONUNBUFFERED="1",ENV_PATH="$PROJECT_ROOT/.env"
 EOF
 
 supervisorctl reread
@@ -345,13 +358,13 @@ server {
   }
 
   location /static/ {
-    alias $PROJECT_ROOT/src/webstore/static/;
+    alias $PROJECT_ROOT/www/static/;
     access_log off;
     expires 30d;
   }
 
   location /media/ {
-    alias $PROJECT_ROOT/src/webstore/media/;
+    alias $PROJECT_ROOT/www/media/;
     access_log off;
     expires 30d;
   }
@@ -364,7 +377,7 @@ server {
   # Optional: handle .well-known for Let's Encrypt
   location ~ /\.well-known/acme-challenge {
     allow all;
-    root /opt/sg.webshop/src/webstore/;
+    root /opt/sg.webshop/www/;
   }
 
   location ~ /\.(git|env|ht) {

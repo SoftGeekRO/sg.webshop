@@ -11,7 +11,10 @@ PREREQ_APPS: Tuple[str, ...] = (
     "django.contrib.staticfiles",
 )
 
-PROJECT_APPS: Tuple[str, ...] = ("brands",)
+PROJECT_APPS: Tuple[str, ...] = (
+    "frontpage",
+    "brands",
+)
 
 # Application definition
 INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS

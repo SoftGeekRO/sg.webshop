@@ -25,7 +25,7 @@ LOGGING = {
             "level": "DEBUG",
             "class": "logging.FileHandler",
             # "filename": str(BASE_DIR.joinpath("log", "django.log")),
-            "filename": "../../log/django.log",
+            "filename": "../../var/log/django.log",
             "formatter": "verbose",
         },
         "email_admins": {

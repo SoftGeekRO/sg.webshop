@@ -364,3 +364,14 @@ pyvenv.cfg
 pip-selfcheck.json
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm+all,python,venv,django
+
+# Nodejs modules
+node_modules/
+
+# www/static and www/media
+www/static/
+www/media/
+
+# Webpack
+package-lock.json
+

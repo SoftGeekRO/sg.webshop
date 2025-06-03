@@ -15,9 +15,34 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf.urls.i18n import i18n_patterns
+from django.utils import timezone
+from django.views.i18n import JavaScriptCatalog
+from django.views.decorators.http import last_modified
+
+admin.autodiscover()
 
 urlpatterns = [
+    path("", include("frontpage.urls"), name="index"),
+    path("brands/", include("brands.urls", namespace="brands")),
     path("admin/", admin.site.urls),
 ]
+
+js_info_dict = {
+    "domain": "django",
+    "packages": getattr(settings, "PROJECT_APPS"),
+}
+
+last_modified_date = timezone.now()
+urlpatterns += i18n_patterns(
+    path(
+        "jsi18n/",
+        last_modified(lambda req, **kw: last_modified_date)(
+            JavaScriptCatalog.as_view(**js_info_dict)
+        ),
+        name="javascript-catalog",
+    )
+)
