@@ -1,0 +1,77 @@
+{
+	"name": "SoftGeek Romania",
+	"short_name": "SoftGeek",
+	"description": "More easy to browse our store using a dedicated application, and receive news and information directly from us.",
+	"id": "?pwa=softgeek&version=1&mode=producation",
+	"start_url": "/?source=pwa",
+	"scope": "/",
+	"orientation": "portrait",
+	"background_color": "#fff",
+	"theme_color": "#80D0ff",
+	"display_override": [
+		"fullscreen",
+		"browser",
+		"window-controls-overlay"
+	],
+	"display": "standalone",
+	"icons": [
+		{
+			"src": "../img/softgeek/icons/72x72.png",
+			"sizes": "72x72",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/softgeek/icons/96x96.png",
+			"sizes": "96x96",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/softgeek/icons/128x128.png",
+			"sizes": "128x128",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/softgeek/icons/144x144.png",
+			"sizes": "144x144",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/softgeek/icons/152x152.png",
+			"sizes": "152x152",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/softgeek/icons/192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/softgeek/icons/512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		}
+	],
+	"screenshots": [
+		{
+			"src": "../img/softgeek/screenshots/pwa_1911x1031.png",
+			"sizes": "1911x1031",
+			"type": "image/png",
+			"form_factor": "wide",
+			"platform": "windows",
+			"label": "Front page of SoftGeek website from a wide desktop browser"
+		}
+	],
+	"lang": "ro",
+	"categories": [
+		"productivity",
+		"shopping"
+	],
+	"shortcuts": []
+}

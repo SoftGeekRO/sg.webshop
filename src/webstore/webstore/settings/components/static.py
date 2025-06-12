@@ -9,10 +9,22 @@ STATICFILES_FINDERS = (
     "compressor.finders.CompressorFinder",
 )
 
+STORAGE = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
+
 # Static files:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#std:setting-STATICFILES_DIRS
 
-# STATICFILES_DIRS: List[str] = [BASE_DIR.joinpath("static")]
+STATICFILES_DIRS: List[str] = [
+    path.join(ROOT_DIR, "resources", "dist"),
+    path.join(ROOT_DIR, "resources", "public"),
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -22,3 +34,5 @@ STATIC_ROOT = path.join(ROOT_DIR, "www", "static")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = path.join(ROOT_DIR, "www", "media")
+
+WP_MANIFEST_PATH = path.join(STATIC_ROOT, "wp", "manifest.json")

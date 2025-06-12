@@ -7,5 +7,7 @@ MIDDLEWARE: Tuple[str, ...] = (
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "django.contrib.sites.middleware.CurrentSiteMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "maintenance_mode.middleware.MaintenanceModeMiddleware",
 )

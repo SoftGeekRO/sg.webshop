@@ -1,0 +1,23 @@
+{% extends "admin/change_form.html" %}
+{% block extrahead %}
+	{{ block.super }}
+	<style>
+		.icon-option::before {
+			font-family: "Font Awesome 6 Brands";
+			content: attr(data-icon);
+			margin-right: 8px;
+		}
+	</style>
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const select = document.getElementById('id_platform');
+			const options = select.querySelectorAll('option');
+
+			options.forEach(option => {
+				const iconClass = `fa-brands fa-${option.value}`;
+				option.classList.add('icon-option');
+				option.setAttribute('data-icon', iconClass);
+			});
+		});
+	</script>
+{% endblock %}

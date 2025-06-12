@@ -23,6 +23,7 @@ base_settings = [
     "components/locale.py",
     "components/security.py",
     "components/mail.py",
+    "components/globals.py",
 ]
 
 # Include settings:

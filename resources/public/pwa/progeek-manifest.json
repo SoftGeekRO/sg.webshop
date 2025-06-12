@@ -1,0 +1,68 @@
+{
+	"name": "ProGeek Romania",
+	"short_name": "ProGeek",
+	"description": "More easy to browse our store using a dedicated application, and receive news and information directly from us.",
+	"id": "?pwa=progeek&version=1&mode=producation",
+	"start_url": "/?source=pwa",
+	"scope": "/",
+	"orientation": "portrait",
+	"background_color": "#fff",
+	"theme_color": "#80D0ff",
+	"display_override": [
+		"fullscreen",
+		"browser",
+		"window-controls-overlay"
+	],
+	"display": "standalone",
+	"icons": [
+		{
+			"src": "../img/progeek/icons/72x72.png",
+			"sizes": "72x72",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/progeek/icons/96x96.png",
+			"sizes": "96x96",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/progeek/icons/128x128.png",
+			"sizes": "128x128",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/progeek/icons/144x144.png",
+			"sizes": "144x144",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/progeek/icons/152x152.png",
+			"sizes": "152x152",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/progeek/icons/192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "../img/progeek/icons/512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		}
+	],
+	"screenshots": [],
+	"lang": "ro",
+	"categories": [
+		"productivity",
+		"shopping"
+	],
+	"shortcuts": []
+}

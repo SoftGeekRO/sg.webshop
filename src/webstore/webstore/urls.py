@@ -26,8 +26,9 @@ from django.views.decorators.http import last_modified
 admin.autodiscover()
 
 urlpatterns = [
-    path("", include("frontpage.urls"), name="index"),
-    path("brands/", include("brands.urls", namespace="brands")),
+    path("", include("apps.frontpage.urls"), name="index"),
+    path("brands/", include("apps.brands.urls", namespace="brands")),
+    # path("grappelli/", include("grappelli.urls")),  # grappelli URLS
     path("admin/", admin.site.urls),
 ]
 

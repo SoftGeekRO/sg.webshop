@@ -22,7 +22,7 @@ LOGGING = {
     },
     "handlers": {
         "logfile": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.FileHandler",
             "filename": str(ROOT_DIR.joinpath("var", "log", "django.log")),
             "formatter": "verbose",
@@ -32,7 +32,7 @@ LOGGING = {
             "class": "django.utils.log.AdminEmailHandler",
         },
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
@@ -51,11 +51,11 @@ LOGGING = {
         "django": {
             "handlers": ["console", "logfile", "email_admins"],
             "propagate": True,
-            "level": "INFO",
+            "level": "DEBUG",
         },
         "security": {
             "handlers": ["console-verbose", "logfile"],
-            "level": "ERROR",
+            "level": "DEBUG",
             "propagate": False,
         },
     },

@@ -21,7 +21,7 @@ const autoprefixer = require('autoprefixer');
 const isProd = process.env.NODE_ENV === 'production';
 
 // 🔁 Shared output paths
-const outputPath = path.resolve(__dirname, 'webroot');
+const outputPath = path.resolve(__dirname, 'resources', 'dist',  'wp');
 
 // Utility functions for naming
 function getPackageFolderName(filePath) {
@@ -62,33 +62,65 @@ const appConfig = {
   name: 'appConfig',
   mode: isProd ? 'production' : 'development',
   entry: {
-    main: './_webpack/js/main.js',
-    style: './_webpack/scss/styles.scss',
-    bootstrap: './_webpack/scss/bootstrap.scss'
+    main: path.resolve(__dirname, 'resources', 'webpack', 'js', 'main.js'),
+    style: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'style.scss'),
+    bootstrap: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'bootstrap.scss'),
+    "admin-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin.scss'),
+    "admin-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin.js'),
+    "admin-lte-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin-lte.scss'),
+    "admin-lte-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin-lte.js'),
+    tagifyCss: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'tagify', 'tagify.scss'),
+    tagifyJs: path.resolve(__dirname, 'resources', 'webpack', 'js', 'tagify.js'),
+    fontAwesome: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'font-awesome.scss'),
   },
   output: {
     filename: isProd ? 'js/[name].[contenthash].js' : 'js/[name].js',
+    assetModuleFilename: 'assets/[name][ext][query]',
     path: outputPath,
-    publicPath: '/', // necessary for dynamic loading
+    publicPath: '/static/wp', // necessary for dynamic loading
     clean: true,
     asyncChunks: true // @TODO: test if is working right on production
+  },
+  externalsType: 'commonjs',
+  externals: {
+    'ts-loader': 'ts-loader',
+    jquery: "jQuery",
+    Tagify: 'Tagify',
   },
 
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.tsx?$/,
+        use: {
+          loader: 'ts-loader',
+          options: {
+            allowTsInNodeModules: true,  // Important for compiling node_modules TS
+            onlyCompileBundledFiles: true, // Only compile files that are actually bundled
+            transpileOnly: true             // Skip type checking (faster builds)
+          }
+        }
+      },
+      {
+        test: /\.(js|jsx|tsx|ts)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: [['@babel/preset-env', {
-              targets: 'defaults'
-            }]]
+            presets: [
+              ['@babel/preset-env', {
+                  targets: 'defaults'
+                }
+              ],
+              ["@babel/preset-typescript"]
+            ],
+            plugins: [
+              "@babel/plugin-transform-class-properties",
+              "@babel/plugin-syntax-object-rest-spread"
+            ]
           }
         }
       },
-      // SCSS/CSS loader
       {
         test: /\.(scss|css)$/i,
         use: [
@@ -132,36 +164,65 @@ const appConfig = {
       },
       // Images
       {
-        test: /\.(png|jpe?g|gif|svg|webp)$/i,
+        test: /\.(png|jpe?g|svg|gif|webp)$/i,
         type: 'asset/resource',
         generator: {
+          //filename: 'images/[name][ext][query]'
           filename: (pathData) => {
-            const pkg = getPackageFolderName(pathData.filename);
-            const fileName = path.basename(pathData.filename);
+            const pkg = getPackageFolderName(pathData.filename),
+              fileName = path.basename(pathData.filename);
             return `img/${pkg}/${fileName}`;
           }
         }
       },
       {
         mimetype: 'image/svg+xml',
-        scheme: 'data',
+        //scheme: 'data',
         type: 'asset/resource',
         generator: {
-          filename: 'icons/[name].svg'
+          filename: (pathData) => {
+            return 'icons/[name][ext]';
+          }
         }
       },
       // Fonts
+      // For woff/woff2 fonts
       {
-        test: /\.(woff2?|eot|ttf|otf)$/i,
+        test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         type: 'asset/resource',
         generator: {
+          //filename: 'fonts/[name][ext][query]' // Output path
           filename: (pathData) => {
             const pkg = getPackageFolderName(pathData.filename);
             const fileName = path.basename(pathData.filename);
             return `fonts/${pkg}/${fileName}`;
           }
         }
-      }
+      },
+      // For ttf/eot/svg fonts
+      {
+        test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
+        type: 'asset/resource',
+        generator: {
+          //filename: 'fonts/[name][ext][query]'
+          filename: (pathData) => {
+            const pkg = getPackageFolderName(pathData.filename);
+            const fileName = path.basename(pathData.filename);
+            return `fonts/${pkg}/${fileName}`;
+          }
+        }
+      },
+      // {
+      //   test: /\.(woff2?|eot|ttf|otf)$/i,
+      //   type: 'asset/resource',
+      //   generator: {
+      //     filename: (pathData) => {
+      //       const pkg = getPackageFolderName(pathData.filename);
+      //       const fileName = path.basename(pathData.filename);
+      //       return `fonts/${pkg}/${fileName}`;
+      //     }
+      //   }
+      // }
     ]
   },
 
@@ -217,13 +278,13 @@ const appConfig = {
         // If the name starts with a dash, remove it
         name = name.replace(/^[-]/, '');
 
-        return isProd ? `css/${name}.[contenthash]` : `css/${name}.css`;
+        return isProd ? `css/${name}.[contenthash].css` : `css/${name}.css`;
       },
-      chunkFilename: isProd ? 'css/[name].[contenthash]' : 'css/[name].css'
+      chunkFilename: isProd ? 'css/[name].[contenthash].css' : 'css/[name].css'
     }),
     new WebpackManifestPlugin({
       fileName: 'manifest.json',
-      publicPath: '/',
+      publicPath: 'wp',
       generate: (seed, files) => {
         const manifest = {};
         files.forEach(file => {
@@ -236,11 +297,11 @@ const appConfig = {
       patterns: [
         {
           from: path.resolve(__dirname, 'node_modules/bootstrap-icons/font/bootstrap-icons.css'),
-          to: path.resolve(__dirname, 'webroot/css/bootstrap-icons.css')
+          to: path.resolve(__dirname, 'resources', 'dist', 'wp', 'css', 'bootstrap-icons.css')
         },
         {
           from: path.resolve(__dirname, 'node_modules/bootstrap-icons/font/fonts'),
-          to: path.resolve(__dirname, 'webroot/fonts/')
+          to: path.resolve(__dirname, 'resources', 'dist', 'wp', 'fonts')
         }
         // {
         //   from: path.resolve(__dirname, 'src/assets'),
@@ -253,6 +314,10 @@ const appConfig = {
         //   noErrorOnMissing: true
         // }
       ]
+    }),
+    new webpack.ProvidePlugin({
+      $: 'jquery',      // Automatically inject `$` where used
+      _: 'lodash',
     })
   ],
 
@@ -273,7 +338,7 @@ const appConfig = {
       '@js': path.resolve(__dirname, 'src/js'),
       '@scss': path.resolve(__dirname, 'src/scss')
     },
-    extensions: ['.js', '.scss']
+    extensions: ['.tsx', '.ts', '.js', 'jsx', '.scss']
   },
   watch: true, // 🔁 Enable watching
   watchOptions: {

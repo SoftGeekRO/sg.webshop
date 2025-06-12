@@ -3,6 +3,7 @@
 from typing import Tuple
 
 PREREQ_APPS: Tuple[str, ...] = (
+    # "grappelli",
     "django.contrib.admin",
     "django.contrib.admindocs",
     "django.contrib.auth",
@@ -23,12 +24,20 @@ PREREQ_APPS: Tuple[str, ...] = (
     "django_celery_beat",
     # see: https://django-compressor.readthedocs.io/
     "compressor",
+    # see: https://django-import-export.readthedocs.io/en/latest/index.html
+    "import_export",
+    # see: https://github.com/fabiocaccamo/django-maintenance-mode
+    "maintenance_mode",
 )
 
+PACKAGES: Tuple[str, ...] = ("packages.tagify",)
+
 PROJECT_APPS: Tuple[str, ...] = (
-    "frontpage",
-    "brands",
+    "apps.maintenance",
+    "apps.siteSettings",
+    "apps.frontpage",
+    "apps.brands",
 )
 
 # Application definition
-INSTALLED_APPS = PREREQ_APPS + PROJECT_APPS
+INSTALLED_APPS = PREREQ_APPS + PACKAGES + PROJECT_APPS

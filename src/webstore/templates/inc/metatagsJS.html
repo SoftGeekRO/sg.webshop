@@ -1,0 +1,13 @@
+<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "Organization",
+		"name": "SoftGeek",
+		"url": "{{ request.build_absolute_uri }}",
+  "logo": "https://www.softgeek.ro/static/img/logo.png",
+  "founder": {
+    "@type": "Person",
+    "name": "{{ seo.author|default:"SoftGeek" }}"
+  }
+}
+</script>

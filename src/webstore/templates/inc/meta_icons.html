@@ -1,0 +1,25 @@
+{% load static static_dynamic %}
+<!-- Mobile -->
+<meta name="theme-color" content="{{ global_seo.theme_color }}" />
+<meta name="application-name" content="{{ global_seo.name }}">
+<meta name="format-detection" content="telephone=yes">
+<meta name="google" value="notranslate" content="notranslate">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="{{ global_seo.name }}">
+<link rel="apple-touch-icon" sizes="57x57" href="{% static_dynamic 'img/{domain}/icons/57x57.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="60x60" href="{% static_dynamic 'img/{domain}/icons/60x60.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="72x72" href="{% static_dynamic 'img/{domain}/icons/72x72.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="76x76" href="{% static_dynamic 'img/{domain}/icons/76x76.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="96x96" href="{% static_dynamic 'img/{domain}/icons/96x96.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="114x114" href="{% static_dynamic 'img/{domain}/icons/114x114.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="120x120" href="{% static_dynamic 'img/{domain}/icons/120x120.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="144x144" href="{% static_dynamic 'img/{domain}/icons/144x144.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="152x152" href="{% static_dynamic 'img/{domain}/icons/152x152.png' domain=global_seo.domain %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static_dynamic 'img/{domain}/icons/180x180.png' domain=global_seo.domain %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static_dynamic 'img/{domain}/icons/32x32.png' domain=global_seo.domain %}">
+<link rel="icon" type="image/png" sizes="192x192" href="{% static_dynamic 'img/{domain}/icons/192x192.png' domain=global_seo.domain %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static_dynamic 'img/{domain}/icons/16x16.png' domain=global_seo.domain %}">
+<link rel="shortcut icon" type="image/x-icon" href="{% static_dynamic 'img/{domain}/icons/favicon.ico' domain=global_seo.domain %}">
+<link rel="icon" type="image/svg+xml" href="{% static_dynamic 'img/{domain}/icons/favicon.svg' domain=global_seo.domain %}" />
+<link rel="manifest" href="{% static_dynamic 'pwa/{domain}-manifest.json' domain=global_seo.domain %}">

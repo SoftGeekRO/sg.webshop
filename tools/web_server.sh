@@ -48,14 +48,14 @@ fi
 
 # Gunicorn tuning based on hardware
 if (( $(echo "$RAM_GB < 1" | bc -l) )); then
-	GUNICORN_WORKERS=1
-    GUNICORN_THREADS=1
-elif [ "$RAM_GB" -le 1 ]; then
 	GUNICORN_WORKERS=2
-	GUNICORN_THREADS=1
-elif [ "$RAM_GB" -le 2 ]; then
+    GUNICORN_THREADS=2
+elif [ "$RAM_GB" -le 1 ]; then
 	GUNICORN_WORKERS=3
 	GUNICORN_THREADS=2
+elif [ "$RAM_GB" -le 2 ]; then
+	GUNICORN_WORKERS=6
+	GUNICORN_THREADS=4
 else
 	GUNICORN_WORKERS=$(($CPU_CORES * 2))
 	GUNICORN_THREADS=4
@@ -91,6 +91,8 @@ fi
 
 log "🔧 Setting up Gunicorn and Nginx server"
 DOMAINS=()
+STATIC_SUBDOMAIN=""
+MEDIA_SUBDOMAIN=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -103,6 +105,14 @@ while [[ $# -gt 0 ]]; do
       GUNICORN_SOCK_FILE="$2"
       shift 2
       ;;
+    --static-subdomain)
+    	STATIC_SUBDOMAIN="$2"
+    	shift 2
+    	;;
+    --media-subdomain)
+    	MEDIA_SUBDOMAIN="$2"
+    	shift 2
+    	;;
     -h|--help)
       usage
       ;;
