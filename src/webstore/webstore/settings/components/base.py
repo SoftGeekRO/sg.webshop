@@ -1,9 +1,11 @@
+from os import getenv
+
 ROOT_URLCONF = "webstore.urls"
 
 WSGI_APPLICATION = "webstore.wsgi.application"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv("DEBUG", False)
 
 # Celery Configuration Options
 CELERY_TIMEZONE = "Europa/Bucharest"

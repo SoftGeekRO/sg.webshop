@@ -75,6 +75,8 @@ usage() {
     log "  domain.com domain2.com	- Domain name to configure"
     log "  --project-root        	- (Optional) Project root path, defaults to current directory ($PROJECT_ROOT/)"
     log "  --gunicorn-socket      	- (Optional) path to Gunicorn socket, default $GUNICORN_SOCK_FILE"
+    log "  --static-subdomain		- (Optional) Define the subdomain for static files"
+    log "  --media-subdomain		- (Optional) Define the subdomain for media files"
     log "  -h|--help               	- display this help information"
   exit 1
 }
@@ -106,13 +108,13 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --static-subdomain)
-    	STATIC_SUBDOMAIN="$2"
-    	shift 2
-    	;;
+      STATIC_SUBDOMAIN="$2"
+      shift 2
+      ;;
     --media-subdomain)
-    	MEDIA_SUBDOMAIN="$2"
-    	shift 2
-    	;;
+      MEDIA_SUBDOMAIN="$2"
+      shift 2
+      ;;
     -h|--help)
       usage
       ;;
@@ -135,6 +137,8 @@ DEBUG=False
 SECRET_KEY=$(openssl rand -hex 32)
 ALLOWED_HOSTS=$DOMAIN[*]
 DATABASE_URL=mysql://$DB_USER:$DB_PASS@localhost/$DB_NAME
+STATIC_SUBDOMAIN=/static/
+MEDIA_SUBDOMAIN=/media/
 EOF
 chown www-data:www-data "$ENV_PATH"
 chmod 600 "$ENV_PATH"
@@ -154,7 +158,7 @@ autostart=true
 autorestart=true
 stderr_logfile=$PROJECT_ROOT/var/log/$PROJECT_NAME.err.log
 stdout_logfile=$PROJECT_ROOT/var/log/$PROJECT_NAME.out.log
-environment=DJANGO_SETTINGS_MODULE="$PROJECT_NAME.settings",PYTHONUNBUFFERED="1",ENV_PATH="$PROJECT_ROOT/.env"
+environment=DJANGO_SETTINGS_MODULE="$PROJECT_NAME.settings",PYTHONUNBUFFERED="1",ENV_PATH="$PROJECT_ROOT/.env",TLDEXTRACT_CACHE="$PROJECT_ROOT/var/cache/tldextract"
 EOF
 
 supervisorctl reread
@@ -404,8 +408,184 @@ if [ ! -f "$SSL_CERTIFICATE" ] && [ ! -f "$SSL_CERTIFICATE_KEY" ]; then
 else
 	log "✅ SSL cert for $DOMAIN already exists. Skipping certbot.\n"
 fi
-
 done
+
+STATIC_CONF_FILE="$NGINX_CONF_DIR/$STATIC_SUBDOMAIN.conf"
+STATIC_SSL_CERTIFICATE="/etc/letsencrypt/live/$STATIC_SUBDOMAIN/fullchain.pem"
+STATIC_SSL_CERTIFICATE_KEY="/etc/letsencrypt/live/$STATIC_SUBDOMAIN/privkey.pem"
+
+if [ ! -f "$STATIC_CONF_FILE" ]; then
+	log "\n🌐 Setting up $STATIC_SUBDOMAIN"
+
+	cat > "$STATIC_CONF_FILE" <<EOF
+server {
+  listen $LOCAL_IP:80 http2;
+  listen [::]:80 http2;
+
+  server_name $STATIC_SUBDOMAIN www.$STATIC_SUBDOMAIN;
+  index index.php index.html;
+
+  include $NGINX_ERROR_PAGES;
+
+  location / {
+    return 301 https://\$host\$request_uri;
+  }
+
+  location ~ /\.well-known/acme-challenge {
+  	allow all;
+  	root /opt/sg.webshop/www/;  # Adjust if needed
+  }
+}
+
+server {
+  listen $LOCAL_IP:443 ssl http2;
+  listen [::]:443 ssl http2;
+
+  server_name $STATIC_SUBDOMAIN www.$STATIC_SUBDOMAIN;
+  index index.php index.html;
+
+  ssl_certificate $STATIC_SSL_CERTIFICATE;
+  ssl_certificate_key $STATIC_SSL_CERTIFICATE_KEY;
+  ssl_dhparam $DH_PARAMS;
+  include $NGINX_SSL_SETTINGS;
+
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header X-Content-Type-Options nosniff;
+  add_header X-Frame-Options DENY;
+
+  include $NGINX_GZIP_CONF;
+
+  # Enable SSI globally or inside error locations only
+  ssi on;
+
+  error_page 400 401 403 404 405 408 429 500 501 502 503 504 /error.html;
+  location = /error.html {
+    internal;
+    ssi on;
+    # Set variables that will be available to SSI
+    set \$error_code \$status;
+    set \$error_status "\$status";
+    set \$full_request "\$request";
+    root $ERROR_PAGES_PATH;
+  }
+
+  location / {
+    root $PROJECT_ROOT/www/static/;
+    access_log off;
+    expires 30d;
+  }
+
+  # Optional: handle .well-known for Let's Encrypt
+  location ~ /\.well-known/acme-challenge {
+    allow all;
+    root /opt/sg.webshop/www/;
+  }
+
+  location ~ /\.(git|env|ht) {
+    deny all;
+  }
+}
+EOF
+
+# Only get certificate if not already existing
+if [ ! -f "$STATIC_SSL_CERTIFICATE" ] && [ ! -f "$STATIC_SSL_CERTIFICATE_KEY" ]; then
+	log "🔐 Obtaining SSL cert for $STATIC_SUBDOMAIN..."
+	systemctl stop nginx
+	certbot certonly --standalone -d "$STATIC_SUBDOMAIN" --non-interactive --agree-tos -m admin@$STATIC_SUBDOMAIN --redirect
+else
+	log "✅ SSL cert for $DOMAIN already exists. Skipping certbot.\n"
+fi
+
+fi
+
+MEDIA_CONF_FILE="$NGINX_CONF_DIR/$MEDIA_SUBDOMAIN.conf"
+MEDIA_SSL_CERTIFICATE="/etc/letsencrypt/live/$MEDIA_SUBDOMAIN/fullchain.pem"
+MEDIA_SSL_CERTIFICATE_KEY="/etc/letsencrypt/live/$MEDIA_SUBDOMAIN/privkey.pem"
+
+if [ ! -f "$MEDIA_CONF_FILE" ]; then
+	log "\n🌐 Setting up $MEDIA_SUBDOMAIN"
+
+	cat > "$MEDIA_CONF_FILE" <<EOF
+server {
+  listen $LOCAL_IP:80 http2;
+  listen [::]:80 http2;
+
+  server_name $MEDIA_SUBDOMAIN www.$MEDIA_SUBDOMAIN;
+  index index.php index.html;
+
+  include $NGINX_ERROR_PAGES;
+
+  location / {
+    return 301 https://\$host\$request_uri;
+  }
+
+  location ~ /\.well-known/acme-challenge {
+  	allow all;
+  	root /opt/sg.webshop/www/;  # Adjust if needed
+  }
+}
+
+server {
+  listen $LOCAL_IP:443 ssl http2;
+  listen [::]:443 ssl http2;
+
+  server_name $MEDIA_SUBDOMAIN www.$MEDIA_SUBDOMAIN;
+  index index.php index.html;
+
+  ssl_certificate $MEDIA_SSL_CERTIFICATE;
+  ssl_certificate_key $MEDIA_SSL_CERTIFICATE_KEY;
+  ssl_dhparam $DH_PARAMS;
+  include $NGINX_SSL_SETTINGS;
+
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+  add_header X-Content-Type-Options nosniff;
+  add_header X-Frame-Options DENY;
+
+  include $NGINX_GZIP_CONF;
+
+  # Enable SSI globally or inside error locations only
+  ssi on;
+
+  error_page 400 401 403 404 405 408 429 500 501 502 503 504 /error.html;
+  location = /error.html {
+    internal;
+    ssi on;
+    # Set variables that will be available to SSI
+    set \$error_code \$status;
+    set \$error_status "\$status";
+    set \$full_request "\$request";
+    root $ERROR_PAGES_PATH;
+  }
+
+  location / {
+    root $PROJECT_ROOT/www/media/;
+    access_log off;
+    expires 30d;
+  }
+
+  # Optional: handle .well-known for Let's Encrypt
+  location ~ /\.well-known/acme-challenge {
+    allow all;
+    root /opt/sg.webshop/www/;
+  }
+
+  location ~ /\.(git|env|ht) {
+    deny all;
+  }
+}
+EOF
+
+# Only get certificate if not already existing
+if [ ! -f "$MEDIA_SSL_CERTIFICATE" ] && [ ! -f "$MEDIA_SSL_CERTIFICATE_KEY" ]; then
+	log "🔐 Obtaining SSL cert for $MEDIA_SUBDOMAIN..."
+	systemctl stop nginx
+	certbot certonly --standalone -d "$MEDIA_SUBDOMAIN" --non-interactive --agree-tos -m admin@$MEDIA_SUBDOMAIN --redirect
+else
+	log "✅ SSL cert for $MEDIA_SUBDOMAIN already exists. Skipping certbot.\n"
+fi
+
+fi
+
 
 log "🔄 Restarting Nginx..."
 systemctl restart nginx

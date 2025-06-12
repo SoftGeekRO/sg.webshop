@@ -1,15 +1,11 @@
 import platform
+from os import getenv
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-)6k7$qfidx0_owrbzpn1!1#l&ou=%2w=3w#9@d&v4$tf^82$bk"
+SECRET_KEY = getenv("SECRET_KEY")
 
-ALLOWED_HOSTS = [
-    "softgeek.ro",
-    "www.softgeek.ro",
-    "progeek.ro",
-    "www.progeek.ro",
-    "localhost",
-]
+ALLOWED_HOSTS = str(getenv("ALLOWED_HOSTS", ["*"])).split(",")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

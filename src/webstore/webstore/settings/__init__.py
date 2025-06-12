@@ -1,7 +1,10 @@
 from pathlib import PurePath
 from os import environ
+from dotenv import load_dotenv
 
 from split_settings.tools import optional, include
+
+load_dotenv()  # loads the configs from .env
 
 ENV = environ.get("DJANGO_ENV") or "development"
 

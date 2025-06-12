@@ -1,4 +1,4 @@
-from os import path
+from os import path, environ, getenv
 from typing import Dict, List, Tuple, Union
 
 from webstore.settings import ROOT_DIR
@@ -29,10 +29,11 @@ STATICFILES_DIRS: List[str] = [
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "/static/"
+
+STATIC_URL = getenv("STATIC_SUBDOMAIN", "/static/")
 STATIC_ROOT = path.join(ROOT_DIR, "www", "static")
 
-MEDIA_URL = "/media/"
+MEDIA_URL = getenv("MEDIA_SUBDOMAIN", "/media/")
 MEDIA_ROOT = path.join(ROOT_DIR, "www", "media")
 
 WP_MANIFEST_PATH = path.join(STATIC_ROOT, "wp", "manifest.json")
