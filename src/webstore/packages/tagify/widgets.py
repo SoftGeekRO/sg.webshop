@@ -2,7 +2,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 # use webpack templatetag because it is already using the webpack manifest to fetch files
-from packages.webpack.templatetags import webpack_asset
+from webstore.templatetags.webpack import webpack_asset
 
 
 class TagsInput(forms.Textarea):
