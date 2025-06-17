@@ -36,4 +36,5 @@ STATIC_ROOT = path.join(ROOT_DIR, "www", "static")
 MEDIA_URL = getenv("MEDIA_SUBDOMAIN", "/media/")
 MEDIA_ROOT = path.join(ROOT_DIR, "www", "media")
 
-WP_MANIFEST_PATH = path.join(STATIC_ROOT, "wp", "manifest.json")
+WP_MANIFEST_PATH = path.join("wp", "manifest.json")
+WP_MANIFEST_ROOT = path.join(STATIC_ROOT, WP_MANIFEST_PATH)

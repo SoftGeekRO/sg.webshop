@@ -1,6 +1,17 @@
+from django.conf import settings
+
 from webstore.settings import BASE_DIR
 
 TEMPLATES = [
+    # {
+    #     "BACKEND": "django.template.backends.jinja2.Jinja2",
+    #     "DIRS": [BASE_DIR / "templates"],
+    #     "APP_DIRS": True,
+    #     "OPTIONS": {
+    #         "auto_reload": settings.DEBUG,
+    #         "environment": "webstore.jinja2.environment",
+    #     },
+    # },
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
@@ -26,7 +37,11 @@ TEMPLATES = [
                 "django.template.loaders.app_directories.Loader",
             ],
             "libraries": {
-                "webpack": "packages.webpack.templatetags",
+                # load the webpack template tags
+                "webpack_manifest": "packages.webpack.templatetags",
+                "webpack_asset": "packages.webpack.templatetags",
+                "webpack_preload": "packages.webpack.templatetags",
+                # resolve vars inside the static paths inside the template
                 "static_dynamic": "webstore.templatetags.static_extras",
             },
         },

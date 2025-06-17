@@ -22,6 +22,7 @@ from django.conf.urls.i18n import i18n_patterns
 from django.utils import timezone
 from django.views.i18n import JavaScriptCatalog
 from django.views.decorators.http import last_modified
+from django.views.generic.base import TemplateView
 
 admin.autodiscover()
 
@@ -30,6 +31,10 @@ urlpatterns = [
     path("brands/", include("apps.brands.urls", namespace="brands")),
     # path("grappelli/", include("grappelli.urls")),  # grappelli URLS
     path("admin/", admin.site.urls),
+    path(
+        "robots.txt",
+        TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
+    ),
 ]
 
 js_info_dict = {

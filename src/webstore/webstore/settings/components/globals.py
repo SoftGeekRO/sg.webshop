@@ -18,7 +18,7 @@ DEFAULT_SEO = {
     "PUBLISHER": "SoftGeek Team",
     "OWNER": "SoftGeek Romania",
     "COPYRIGHT": "© 2025 SoftGeek. Toate drepturile rezervate.",
-    "IMAGE": "/static/img/default/brand/1280x391.png",
+    "IMAGE": "/static/img/default/brand/1200x630.png",
     "TWITTER_SITE": "@SoftGeekRO",
     "OG_SITE_NAME": "SoftGeek Webstore",
     "THEME_COLOR": "#345212",

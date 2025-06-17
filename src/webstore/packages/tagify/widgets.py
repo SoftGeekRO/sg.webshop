@@ -2,15 +2,15 @@ from django import forms
 from django.utils.safestring import mark_safe
 
 # use webpack templatetag because it is already using the webpack manifest to fetch files
-from packages.webpack.templatetags import webpack
+from packages.webpack.templatetags import webpack_asset
 
 
 class TagsInput(forms.Textarea):
     template_name = "tagsinput.html"
 
     class Media:
-        css = {"all": [webpack("tagifyCss.css")]}
-        js = [webpack("tagifyJs.js"), webpack("vendor/yaireo-tagify.js")]
+        css = {"all": [webpack_asset("tagifyCss.css")]}
+        js = [webpack_asset("tagifyJs.js"), webpack_asset("vendor/yaireo-tagify.js")]
 
     def __init__(self, attrs=None, tagify_settings=None):
         """

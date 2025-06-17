@@ -1,27 +1,34 @@
 {% extends "skeletron.html" %}
-{% load static i18n webpack %}
-{% block begin_head %}
-<meta charset="utf-8">
-<title>{% block title %}{{ global_seo.title }}{% endblock %} | {{ global_seo.name }}</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-{% include "./inc/meta_icons.html" %}
-{% include "./inc/meta_tags.html" %}
-<base href="{{ request.build_absolute_uri|slice:":-1" }}">
-<link rel="dns-prefetch" href="https://softgeek.ro">
-<link rel="dns-prefetch" href="https://progeek.ro">
-<link rel="canonical" href="{{ canonical_url|default:request.build_absolute_uri }}" />
-{% block blockbots %}{% endblock %}
-{% block extrahead %}{% endblock %}
-{#	{% include "./parts/html_head_css.html" %}#}
-	{% block extrastyle %}{% endblock %}
-{% endblock %}
+{% load static i18n webpack_asset webpack_preload %}
 {% block end_head %}
-<link rel="stylesheet" href="{% webpack 'bootstrap.css' %}" />
-<link rel="stylesheet" href="{% webpack 'css/bootstrap-icons.css' %}" />
-<link rel="stylesheet" href="{% webpack 'style.css' %}" />
+	{% webpack_asset 'bootstrap-css.css,css/bootstrap-icons.css,style.css' %}
+{% endblock %}
+{% block begin_head %}
+	<meta charset="utf-8">
+	<title>{% block title %}{{ global_seo.title }}{% endblock %} | {{ global_seo.name }}</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	{% block meta_icons %}
+		{% include "./inc/meta_icons.html" %}
+	{% endblock %}
+	{% block preloads_css %}
+		{% webpack_preload 'bootstrap-css.css,css/bootstrap-icons.css,style.css' %}
+	{% endblock %}
+	{% block preloads_js %}
+		{% webpack_preload 'runtime.js,vendor/bootstrap.js,vendor/popperjs-core.js,bootstrap-js.js,main.js' %}
+	{% endblock %}
+	{% block meta_tags %}
+		{% include "./inc/meta_tags.html" %}
+	{% endblock %}
+	<base href="{{ request.build_absolute_uri|slice:":-1" }}">
+	<link rel="dns-prefetch" href="https://softgeek.ro">
+	<link rel="dns-prefetch" href="https://progeek.ro">
+	<link rel="canonical" href="{{ canonical_url|default:request.build_absolute_uri }}" />
+{% block blockbots %}{% endblock %}
 {% endblock %}
 {% block extrascript %}
-<script src="{% webpack 'main.js' %}"></script>
+	{% webpack_asset 'runtime.js,vendor/bootstrap.js,vendor/popperjs-core.js,bootstrap-js.js' %}
 {% endblock %}
-
+{% block initscript %}
+	{% webpack_asset 'main.js' %}
+{% endblock %}

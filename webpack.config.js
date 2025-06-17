@@ -16,6 +16,7 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
+const { SubresourceIntegrityPlugin } = require('webpack-subresource-integrity');
 const autoprefixer = require('autoprefixer');
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -64,7 +65,8 @@ const appConfig = {
   entry: {
     main: path.resolve(__dirname, 'resources', 'webpack', 'js', 'main.js'),
     style: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'style.scss'),
-    bootstrap: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'bootstrap.scss'),
+    "bootstrap-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'bootstrap.scss'),
+    "bootstrap-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'bootstrap.js'),
     "admin-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin.scss'),
     "admin-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin.js'),
     "admin-lte-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin-lte.scss'),
@@ -78,6 +80,7 @@ const appConfig = {
     assetModuleFilename: 'assets/[name][ext][query]',
     path: outputPath,
     publicPath: '/static/wp', // necessary for dynamic loading
+    crossOriginLoading: "anonymous", // for SRI functionality
     clean: true,
     asyncChunks: true // @TODO: test if is working right on production
   },
@@ -201,7 +204,7 @@ const appConfig = {
       },
       // For ttf/eot/svg fonts
       {
-        test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
+        test: /\.(woff2?|ttf|eot|svg|otf)(\?[\s\S]+)?$/,
         type: 'asset/resource',
         generator: {
           //filename: 'fonts/[name][ext][query]'
@@ -212,21 +215,13 @@ const appConfig = {
           }
         }
       },
-      // {
-      //   test: /\.(woff2?|eot|ttf|otf)$/i,
-      //   type: 'asset/resource',
-      //   generator: {
-      //     filename: (pathData) => {
-      //       const pkg = getPackageFolderName(pathData.filename);
-      //       const fileName = path.basename(pathData.filename);
-      //       return `fonts/${pkg}/${fileName}`;
-      //     }
-      //   }
-      // }
     ]
   },
 
   optimization: {
+    runtimeChunk: {
+      name: 'runtime',
+    },
     splitChunks: {
       chunks: 'all',
       cacheGroups: {
@@ -259,6 +254,11 @@ const appConfig = {
   },
 
   plugins: [
+    new SubresourceIntegrityPlugin({
+      hashFuncNames: ['sha384'], // Recommended by browsers
+      enabled: isProd
+
+    }),
     new CleanWebpackPlugin({
       verbose: false,
       cleanOnceBeforeBuildPatterns: ['**/*', '!loader.js', '!loader.*.js'],
@@ -288,7 +288,11 @@ const appConfig = {
       generate: (seed, files) => {
         const manifest = {};
         files.forEach(file => {
-          manifest[file.name] = file.path;
+          console.log(file);
+          manifest[file.name] = {
+            path: file.path,
+            integrity: file.integrity || null
+          };
         });
         return manifest;
       }
@@ -303,16 +307,6 @@ const appConfig = {
           from: path.resolve(__dirname, 'node_modules/bootstrap-icons/font/fonts'),
           to: path.resolve(__dirname, 'resources', 'dist', 'wp', 'fonts')
         }
-        // {
-        //   from: path.resolve(__dirname, 'src/assets'),
-        //   to: path.resolve(__dirname, 'dist/assets'), // or wherever your output path is
-        //   noErrorOnMissing: true
-        // },
-        // {
-        //   from: path.resolve(__dirname, 'src/assets/img'),
-        //   to: path.resolve(__dirname, 'dist/img'), // or wherever your output path is
-        //   noErrorOnMissing: true
-        // }
       ]
     }),
     new webpack.ProvidePlugin({
