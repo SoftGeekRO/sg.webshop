@@ -27,6 +27,7 @@ base_settings = [
     "components/security.py",
     "components/mail.py",
     "components/globals.py",
+    "components/maintenance.py",
 ]
 
 # Include settings:

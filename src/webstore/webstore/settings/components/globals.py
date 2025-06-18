@@ -26,11 +26,6 @@ DEFAULT_SEO = {
     "THEME_COLOR": "#345212",
 }
 
-MAINTENANCE_MODE = False
-
-# the template that will be shown by the maintenance-mode page
-MAINTENANCE_MODE_TEMPLATE = "maintenance/503.html"
-
 # check the resource_hints templatetags
 DNS_PREFETCH_DOMAINS = getenv("DNS_PREFETCH_DOMAINS").split(",")
 # check the resource_hints templatetags

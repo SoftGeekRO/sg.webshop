@@ -84,12 +84,12 @@ const appConfig = {
     clean: true,
     asyncChunks: true // @TODO: test if is working right on production
   },
-  externalsType: 'commonjs',
-  externals: {
-    'ts-loader': 'ts-loader',
-    jquery: "jQuery",
-    Tagify: 'Tagify',
-  },
+  // externalsType: 'commonjs',
+  // externals: {
+  //   'ts-loader': 'ts-loader',
+  //   jquery: "jQuery",
+  //   Tagify: 'Tagify',
+  // },
 
   module: {
     rules: [
@@ -254,11 +254,6 @@ const appConfig = {
   },
 
   plugins: [
-    new SubresourceIntegrityPlugin({
-      hashFuncNames: ['sha384'], // Recommended by browsers
-      enabled: isProd
-
-    }),
     new CleanWebpackPlugin({
       verbose: false,
       cleanOnceBeforeBuildPatterns: ['**/*', '!loader.js', '!loader.*.js'],
@@ -282,17 +277,23 @@ const appConfig = {
       },
       chunkFilename: isProd ? 'css/[name].[contenthash].css' : 'css/[name].css'
     }),
+    new SubresourceIntegrityPlugin({
+      hashFuncNames: ['sha384'], // Recommended by browsers
+      enabled: true
+
+    }),
     new WebpackManifestPlugin({
       fileName: 'manifest.json',
       publicPath: 'wp',
       generate: (seed, files) => {
         const manifest = {};
         files.forEach(file => {
-          console.log(file);
-          manifest[file.name] = {
-            path: file.path,
-            integrity: file.integrity || null
-          };
+          if (!file.path.endsWith('.map')) {
+            manifest[file.name] = {
+              path: file.path,
+              integrity: file.integrity || null
+            };
+          }
         });
         return manifest;
       }

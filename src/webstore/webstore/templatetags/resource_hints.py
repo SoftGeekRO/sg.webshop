@@ -6,6 +6,8 @@ from django.utils.safestring import mark_safe
 from django.contrib.sites.models import Site
 from urllib.parse import urlparse
 
+from webstore.threadlocals import get_current_request
+
 register = template.Library()
 
 logger = logging.getLogger("django")
@@ -55,6 +57,9 @@ def resource_hints(
     domains = domains - _RENDERED_HINTS
     _RENDERED_HINTS.update(domains)
 
+    request = get_current_request()
+    logger.info(getattr(request, "preloads", ""))
+
     lines = []
     for domain in sorted(domains):
         hint = settings.DOMAIN_HINTS.get(domain, {})
@@ -79,5 +84,4 @@ def resource_hints(
             attrs.append(f'fetchpriority="{fetchpriority}"')
 
         lines.append(f"<link {' '.join(attrs)}>")
-    logger.info(lines)
     return mark_safe("\n".join(lines))

@@ -15,8 +15,10 @@
 {% block end_head %}{% endblock %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}" onload="{% block bodyonload %}{% endblock %}">
-{% block begin_body %}{% endblock %}
-{% block basebody %}{% endblock %}
+<main class="container py-4">
+	{% block content %}{% endblock %}
+</main>
+{% include "inc/footer.html" %}
 {% block extrascript %}{% endblock %}
 {% block initscript %}{% endblock %}
 {% block end_body %}{% endblock %}

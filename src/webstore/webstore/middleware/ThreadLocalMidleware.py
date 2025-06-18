@@ -1,4 +1,5 @@
-from ..context_processors import set_request, clear_request
+
+from webstore.threadlocals import set_current_request
 
 
 class ThreadLocalMiddleware:
@@ -6,7 +7,5 @@ class ThreadLocalMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        set_request(request)
-        response = self.get_response(request)
-        clear_request()
-        return response
+        set_current_request(request)
+        return self.get_response(request)

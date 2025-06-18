@@ -38,13 +38,16 @@ TEMPLATES = [
             ],
             "libraries": {
                 # load the webpack template tags
-                "webpack_manifest": "webstore.templatetags.webpack",
-                "webpack_asset": "webstore.templatetags.webpack",
-                "webpack_preload": "webstore.templatetags.webpack",
+                # "webpack_manifest": "webstore.templatetags.webpack",
+                # "webpack_asset": "webstore.templatetags.webpack",
+                # "webpack_preload": "webstore.templatetags.webpack",
                 # resolve vars inside the static paths inside the template
                 "static_dynamic": "webstore.templatetags.static_extras",
                 # load dns-prefetch and preload templatetags for head html
                 "resource_hints": "webstore.templatetags.resource_hints",
+                # load google fonts from cdn or local
+                # "fonts": "webstore.templatetags.fonts",
+                "assets": "webstore.templatetags.assets",
             },
         },
     },

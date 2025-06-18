@@ -33,7 +33,6 @@ PREREQ_APPS: Tuple[str, ...] = (
 PACKAGES: Tuple[str, ...] = ("packages.tagify",)
 
 PROJECT_APPS: Tuple[str, ...] = (
-    "apps.maintenance",
     "apps.siteSettings",
     "apps.frontpage",
     "apps.brands",

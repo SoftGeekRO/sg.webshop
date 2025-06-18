@@ -20,6 +20,11 @@ LOGGING = {
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
+    "filters": {
+        "require_not_maintenance_mode_503": {
+            "()": "maintenance_mode.logging.RequireNotMaintenanceMode503",
+        },
+    },
     "handlers": {
         "logfile": {
             "level": "INFO",
