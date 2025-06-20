@@ -314,9 +314,19 @@ for DOMAIN in "${DOMAINS[@]}"; do
   CONF_FILE="$NGINX_CONF_DIR/$DOMAIN.conf"
   SSL_CERTIFICATE="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
   SSL_CERTIFICATE_KEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
+  fullDomain=${DOMAIN,,} # Convert to lowercase
+  _domain=""
+
+  parts=(${fullDomain//./ })  # Split by dot into array
+  if [ ${#parts[@]} -ge 2 ]; then
+      _domain="${parts[-2]}"
+  else
+      log "❌ Invalid domain, check $fullDomain..."
+      exit 1
+  fi
 
   if [ -f "$CONF_FILE" ]; then
-    log "❌ Config file for $DOMAIN already exists. Skipping."
+    log "❌ Config file for $fullDomain already exists. Skipping."
     continue
   fi
 
@@ -325,7 +335,7 @@ server {
   listen $LOCAL_IP:80 http2;
   listen [::]:80 http2;
 
-  server_name $DOMAIN www.$DOMAIN;
+  server_name $fullDomain www.$fullDomain;
   index index.php index.html;
 
   include $NGINX_ERROR_PAGES;
@@ -343,7 +353,7 @@ server {
   listen $LOCAL_IP:443 ssl http2;
   listen [::]:443 ssl http2;
 
-  server_name $DOMAIN www.$DOMAIN;
+  server_name $fullDomain www.$fullDomain;
   index index.php index.html;
 
   ssl_certificate $SSL_CERTIFICATE;
@@ -369,6 +379,12 @@ server {
     set \$error_status "\$status";
     set \$full_request "\$request";
     root $ERROR_PAGES_PATH;
+  }
+
+  location = /favicon.ico {
+    access_log off;
+    log_not_found off;
+    try_files $PROJECT_ROOT/www/static/img/$_domain/icons/favicon.ico =204;
   }
 
   location /static/ {
@@ -402,11 +418,11 @@ EOF
 
 # Only get certificate if not already existing
 if [ ! -f "$SSL_CERTIFICATE" ] && [ ! -f "$SSL_CERTIFICATE_KEY" ]; then
-	log "🔐 Obtaining SSL cert for $DOMAIN..."
+	log "🔐 Obtaining SSL cert for $fullDomain..."
 	systemctl stop nginx
-	certbot certonly --standalone -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos -m admin@$DOMAIN --redirect
+	certbot certonly --standalone -d "$fullDomain" -d "www.$fullDomain" --non-interactive --agree-tos -m admin@$fullDomain --redirect
 else
-	log "✅ SSL cert for $DOMAIN already exists. Skipping certbot.\n"
+	log "✅ SSL cert for $fullDomain already exists. Skipping certbot.\n"
 fi
 done
 
