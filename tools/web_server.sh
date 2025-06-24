@@ -20,6 +20,7 @@ VENV_DIR="$PROJECT_ROOT/.venv"
 
 ERROR_PAGES_PATH="$PROJECT_ROOT/utils/nginx/errorPages"
 
+NGINX_MAP_HASH_BUCKET_SIZE=128
 NGINX_PATH="/etc/nginx"
 NGINX_CONF="$NGINX_PATH/nginx.conf"
 NGINX_CONF_DIR="$NGINX_PATH/conf.d"
@@ -28,6 +29,7 @@ NGINX_DEFAULT_SERVER="$NGINX_CONF_DIR/default.conf"
 NGINX_GZIP_CONF="$NGINX_PATH/snippets/gzip.conf"
 NGINX_SSL_SETTINGS="$NGINX_PATH/snippets/options-ssl-nginx.conf"
 NGINX_ERROR_PAGES="$NGINX_PATH/snippets/errorPages.conf"
+NGINX_CORS_ORIGINS="$NGINX_PATH/snippets/cors-origin.map"
 
 DH_PARAMS="/etc/letsencrypt/ssl-dhparams.pem"
 SSL_DUMMY_CERT="/etc/ssl/certs/dummy.crt"
@@ -93,8 +95,8 @@ fi
 
 log "🔧 Setting up Gunicorn and Nginx server"
 DOMAINS=()
-STATIC_SUBDOMAIN=""
-MEDIA_SUBDOMAIN=""
+STATIC_SUBDOMAIN="/static/"
+MEDIA_SUBDOMAIN="/media/"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -129,6 +131,20 @@ if [ ${#DOMAINS[@]} -eq 0 ]; then
   usage
 fi
 
+# Extract base domains for CORS allowlist
+CORS_ORIGINS=()
+for DOMAIN in "${DOMAINS[@]}"; do
+    # Convert to lowercase
+    DOMAIN_LOWER=${DOMAIN,,}
+    PARTS=(${DOMAIN_LOWER//./ })
+    if [ ${#PARTS[@]} -ge 2 ]; then
+        BASE_DOMAIN="${PARTS[-2]}.${PARTS[-1]}"
+        CORS_ORIGINS+=("$BASE_DOMAIN")
+    fi
+done
+# Join with |
+CORS_REGEX=$(IFS="|" ; echo "${CORS_ORIGINS[*]}")
+
 ENV_PATH="$PROJECT_ROOT/.env"
 if [ ! -f $ENV_PATH ]; then
 	log "🔧 Populate the .env file"
@@ -137,12 +153,35 @@ DEBUG=False
 SECRET_KEY=$(openssl rand -hex 32)
 ALLOWED_HOSTS=$DOMAIN[*]
 DATABASE_URL=mysql://$DB_USER:$DB_PASS@localhost/$DB_NAME
-STATIC_SUBDOMAIN=/static/
-MEDIA_SUBDOMAIN=/media/
+STATIC_SUBDOMAIN=$STATIC_SUBDOMAIN
+MEDIA_SUBDOMAIN=$MEDIA_SUBDOMAIN
 EOF
 chown www-data:www-data "$ENV_PATH"
 chmod 600 "$ENV_PATH"
 fi
+
+log "🔧 Generate the CORS origin map with exact matches"
+{
+  echo "map \$http_origin \$cors_allow_origin {"
+  echo "  default \"\";"
+  for ORIGIN in "${DOMAINS[@]}"; do
+    echo "  \"https://$ORIGIN\" \"https://$ORIGIN\";"
+    echo "  \"https://www.$ORIGIN\" \"https://www.$ORIGIN\";"
+  done
+  echo "}"
+} > "$NGINX_CORS_ORIGINS"
+#
+# if [ ! -f $NGINX_CORS_ORIGINS ]; then
+# 	log "🔧 Generate the CORS file for static and media subdomains"
+# 	cat > $NGINX_CORS_ORIGINS <<EOF
+# map \$http_origin \$cors_valid {
+#   default "";
+#   ~^https?://(www\.)?(${CORS_REGEX})$ 1;
+# }
+# EOF
+chown www-data:www-data "$NGINX_CORS_ORIGINS"
+chmod 755 "$ENV_PATH"
+#fi
 
 if [ ! -f "$SUPERVISOR_PATH/$PROJECT_NAME.conf" ]; then
 	log "📋 Creating Supervisor config..."
@@ -251,6 +290,34 @@ if grep -q "http {" "$NGINX_CONF"; then
 	fi
 else
 	log "⚠️ Could not find http block in $NGINX_CONF"
+fi
+
+# Ensure etag off; is set inside http block
+if grep -q "http {" "$NGINX_CONF"; then
+  if grep -qE "^\s*etag\s+" "$NGINX_CONF"; then
+    sed -i "s/^\s*etag\s\+\S\+;/    etag off;/" "$NGINX_CONF"
+    log "✅ Updated existing 'etag' directive to 'etag off;'"
+  elif ! grep -q "etag" "$NGINX_CONF"; then
+    sed -i "/http {/a \    etag off;" "$NGINX_CONF"
+    log "✅ Injected missing 'etag off;' into nginx.conf"
+  else
+    log "ℹ️  'etag' directive already present (commented?), check manually if needed"
+  fi
+else
+  log "⚠️  Could not find 'http {' block in $NGINX_CONF"
+fi
+
+# Ensure map_hash_bucket_size is defined before any map directive
+if grep -q "http {" "$NGINX_CONF"; then
+  if ! grep -q "map_hash_bucket_size" "$NGINX_CONF"; then
+    MAP_HASH_BUCKET_SIZE=${NGINX_MAP_HASH_BUCKET_SIZE:-128}
+    sed -i "/http {/a \    map_hash_bucket_size $MAP_HASH_BUCKET_SIZE;" "$NGINX_CONF"
+    log "✅ Injected 'map_hash_bucket_size $MAP_HASH_BUCKET_SIZE;' into nginx.conf"
+  else
+    log "ℹ️  'map_hash_bucket_size' already defined in nginx.conf, skipping insertion"
+  fi
+else
+  log "⚠️  Could not find 'http {' block in $NGINX_CONF"
 fi
 
 log "🔧 Setting up gzip config in separate file..."
@@ -448,10 +515,11 @@ server {
   }
 
   location ~ /\.well-known/acme-challenge {
-  	allow all;
-  	root /opt/sg.webshop/www/;  # Adjust if needed
+    allow all;
+    root /opt/sg.webshop/www/;  # Adjust if needed
   }
 }
+include $NGINX_CORS_ORIGINS;
 
 server {
   listen $LOCAL_IP:443 ssl http2;
@@ -474,6 +542,8 @@ server {
   # Enable SSI globally or inside error locations only
   ssi on;
 
+  root $PROJECT_ROOT/www/static;
+
   error_page 400 401 403 404 405 408 429 500 501 502 503 504 /error.html;
   location = /error.html {
     internal;
@@ -485,10 +555,40 @@ server {
     root $ERROR_PAGES_PATH;
   }
 
-  location / {
-    root $PROJECT_ROOT/www/static/;
+  location ~ ^/(.*?[a-z0-9_-]+\.[a-f0-9]+\.[a-z]+)$ {
+    alias $PROJECT_ROOT/www/static/\$1;
     access_log off;
     expires 30d;
+
+    add_header cache-control "public, immutable";
+    add_header Access-Control-Allow-Origin "\$cors_allow_origin" always;
+    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "*" always;
+    add_header Vary "Origin";
+
+    if (\$request_method = OPTIONS) {
+      add_header Content-Length 0;
+      add_header Content-Type text/plain;
+      return 204;
+    }
+  }
+
+  location ~* \.(woff2?|ttf|otf|eot)$ {
+    root $PROJECT_ROOT/www/static;
+
+    access_log off;
+    expires 30d;
+
+    add_header Access-Control-Allow-Origin "\$cors_allow_origin" always;
+    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "*" always;
+    add_header Vary "Origin";
+
+    if (\$request_method = OPTIONS) {
+      add_header Content-Length 0;
+      add_header Content-Type text/plain;
+      return 204;
+    }
   }
 
   # Optional: handle .well-known for Let's Encrypt
@@ -536,8 +636,8 @@ server {
   }
 
   location ~ /\.well-known/acme-challenge {
-  	allow all;
-  	root /opt/sg.webshop/www/;  # Adjust if needed
+    allow all;
+    root /opt/sg.webshop/www/;  # Adjust if needed
   }
 }
 
@@ -562,6 +662,8 @@ server {
   # Enable SSI globally or inside error locations only
   ssi on;
 
+  root $PROJECT_ROOT/www/media;
+
   error_page 400 401 403 404 405 408 429 500 501 502 503 504 /error.html;
   location = /error.html {
     internal;
@@ -573,10 +675,22 @@ server {
     root $ERROR_PAGES_PATH;
   }
 
-  location / {
-    root $PROJECT_ROOT/www/media/;
+  location ~ ^/(.*?[a-z0-9_-]+\.[a-f0-9]+\.[a-z]+)$ {
+    alias $PROJECT_ROOT/www/media/\$1;
     access_log off;
     expires 30d;
+
+    add_header cache-control "public, immutable";
+    add_header Access-Control-Allow-Origin "https?://(www\.)?(${CORS_REGEX})" always;
+    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "*" always;
+    add_header Vary "Origin";
+
+    if (\$request_method = OPTIONS) {
+      add_header Content-Length 0;
+      add_header Content-Type text/plain;
+      return 204;
+    }
   }
 
   # Optional: handle .well-known for Let's Encrypt

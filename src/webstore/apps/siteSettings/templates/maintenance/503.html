@@ -1,7 +1,122 @@
 {% extends "base.html" %}
-{% load assets %}
+{% load i18n assets markdown %}
 
-{% block end_head %}
+{% block title %}{% translate 'maintenanceTitlePage' %}{% endblock title %}
+{% block font_header %}
 	{% load_google_fonts "Roboto:400,700" "Open Sans:300,300i,400,400i,600,600i,700,700i" "Raleway:300,300i,400,400i,600,600i,700,700i" %}
-	{{ block.super }}
 {% endblock %}
+{% block end_head %}
+	{{ block.super }}
+	{% webpack_asset 'maintenance.css' %}
+{% endblock end_head %}
+
+{% block javascript %}
+	{{ block.super }}
+	{% local_assets 'js/mermaid/11.7.0/mermaid.min.js' %}
+{% endblock javascript %}
+
+{% block content %}
+	<!-- ======= Header ======= -->
+	<header id="header" class="d-flex align-items-center">
+		<div class="container d-flex flex-column align-items-center">
+			<h1>{% translate 'maintenanceWorkInProgressTitle' %}</h1>
+			<div class="text-start">{% markdownify 'siteSettings.mntDescription' %}</div>
+		</div>
+	</header><!-- End #header -->
+	<main id="main">
+		<!-- ======= About Us Section ======= -->
+		<section id="about" class="about">
+			<div class="container shadow-lg rounded">
+
+				<div class="section-title">
+					<h2>{% translate 'maintenanceAboutUsTitle' %}</h2>
+					<div class="text-start">{% markdownify 'siteSettings.mntAboutUsDescription' %}</div>
+				</div>
+
+				<div class="row mt-2">
+					<div class="col-lg-4 col-md-6 icon-box">
+						<div class="icon"><i class="bi bi-briefcase"></i></div>
+						<h4 class="title"><a href="">{% translate 'maintenanceTrustBarConsulting' %}</a></h4>
+						<p class="description">{% translate 'maintenanceTrustBarConsultingDescription' %}</p>
+					</div>
+					<div class="col-lg-4 col-md-6 icon-box">
+						<div class="icon"><i class="bi bi-truck"></i></div>
+						<h4 class="title"><a href="">{% translate 'maintenanceTrustBarDelivery' %}</a></h4>
+						<p class="description">{% translate 'maintenanceTrustBarDeliveryDescription' %}</p>
+					</div>
+					<div class="col-lg-4 col-md-6 icon-box">
+						<div class="icon"><i class="bi bi-credit-card"></i></div>
+						<h4 class="title"><a href="">{% translate 'maintenanceTrustBarPaymentMethods' %}</a></h4>
+						<p class="description">{% translate 'maintenanceTrustBarPaymentMethodsDescription' %}</p>
+					</div>
+				</div>
+
+			</div>
+		</section><!-- End About Us Section -->
+		<section id="social-media" class="social-media">
+			<div class="container shadow-lg rounded">
+				<div class="section-title">
+					<h2>{% translate 'maintenanceSocialMediaTitle' %}</h2>
+				</div>
+				<div class="row mt-2">
+					<div class="social-links text-center">
+						<a href="#" class="btn btn-outline-primary facebook"><i class="bi bi-facebook"></i></a>
+						<a href="#" class="btn btn-outline-primary instagram"><i class="bi bi-instagram"></i></a>
+						<a href="#" class="btn btn-outline-primary youtube"><i class="bi bi-youtube"></i></a>
+					</div>
+				</div>
+			</div>
+		</section>
+		<!-- ======= Contact Us Section ======= -->
+		<section id="contact" class="contact">
+			<div class="container shadow-lg rounded">
+
+				<div class="section-title">
+					<h2>{% translate 'maintenanceContactUsTitle' %}</h2>
+				</div>
+
+				<div class="row g-0 justify-content-md-center">
+					<div class="col-lg-4 mt-lg-0 d-flex align-items-stretch">
+						<div class="info">
+							<div class="address">
+								<i class="bi bi-geo-alt"></i>
+								<h4>{% translate 'Location' %}:</h4>
+								<p>Cosoveni, Dolj, Romania</p>
+							</div>
+							<div class="email">
+								<i class="bi bi-envelope"></i>
+								<h4>{% translate 'Email:' %}</h4>
+								<p>office@softgeek.ro</p>
+							</div>
+							<div class="phone">
+								<i class="bi bi-phone"></i>
+								<h4>{% translate 'Phone' %}</h4>
+								<p>+40.770.915.245</p>
+							</div>
+						</div>
+					</div>
+					<div class="col-5 mt-md-0">
+						<div class="info">
+							<iframe
+								src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241.22518237524915!2d23.92188689220211!3d44.23972726546201!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xc255212afff0a79%3A0x6ae8965141b8d7e0!2sSG%20SOLAR!5e1!3m2!1sen!2sro!4v1750452749819!5m2!1sen!2sro"
+								width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy"
+								referrerpolicy="no-referrer-when-downgrade"></iframe>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section><!-- End Contact Us Section -->
+	</main>
+	<!-- ======= Footer ======= -->
+	<footer id="footer">
+		<div class="container">
+			<div class="copyright">
+				{{ global_seo.copyright }}
+			</div>
+			<div class="credits">
+				{{ global_seo.owner }}
+			</div>
+		</div>
+	</footer><!-- End #footer -->
+	<a href="#" class="btn btn-primary back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+{% endblock content %}

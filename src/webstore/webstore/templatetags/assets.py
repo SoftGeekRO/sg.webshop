@@ -28,14 +28,26 @@ def build_url(asset_path):
 
 def guess_type(url):
     ext = url.split("?")[0].split(".")[-1].lower()
+    preload_type = None
     if ext in {"js", "mjs"}:
-        return "script"
+        return "script", ext, preload_type
+
     if ext in {"css"}:
-        return "style"
+        return "style", ext, preload_type
+
     if ext in {"woff", "woff2", "ttf", "otf"}:
-        return "font"
+        if url.endswith(".woff2"):
+            preload_type = "font/woff2"
+        elif url.endswith(".woff"):
+            preload_type = "font/woff"
+        elif url.endswith(".ttf"):
+            preload_type = "font/ttf"
+        elif url.endswith(".otf"):
+            preload_type = "font/otf"
+        return "font", ext, preload_type
+
     if ext in {"jpg", "jpeg", "png", "gif", "webp", "svg", "avif"}:
-        return "image"
+        return "image", ext, preload_type
     return None
 
 
@@ -205,8 +217,9 @@ def resolve_asset(entry_name, exts, manifest, suffix=None):
     if suffix:
         key += f".{suffix}"
     for k, v in manifest.items():
-        if k.startswith(key) and any(v.endswith(f".{ext}") for ext in exts):
-            return v
+        path = v.get("path")
+        if k.startswith(key) and any(path.endswith(f".{ext}") for ext in exts):
+            return path
     return None
 
 
@@ -302,7 +315,7 @@ def webpack_asset(entrypoints="main", async_scripts=False, module=False, suffix=
                 "async": "async" if async_scripts and not module else None,
                 "type": "module" if module or USE_MODULE_SCRIPTS else None,
                 "crossorigin": CROSSORIGIN or None,
-                "integrity": INTEGRITY_MAP.get(original_path),
+                # "integrity": INTEGRITY_MAP.get(original_path),
             }
             tags.append(f"<script {build_attrs(attrs)}></script>")
 
@@ -310,6 +323,59 @@ def webpack_asset(entrypoints="main", async_scripts=False, module=False, suffix=
 
 
 # ---------===== Local assets =====---------
+
+
+@register.simple_tag
+def local_assets(assets: str, as_type=None, preloads=True, crossorigin=None, **attrs):
+    """
+    Usage: {% local_assets "css/pygments.css" "css/extra.css" as_type="style" preloads=True %}
+
+    Automatically generates:
+    - <link rel="stylesheet" ...> for CSS
+    - <script src=...> for JS
+    - <link rel="preload" ...> for fonts/images/etc.
+    """
+    tags = []
+    paths = [e.strip() for e in assets.split(",")]
+
+    for asset_path in paths:
+        url = build_url(asset_path)
+        kind, ext, preload_type = guess_type(url)
+
+        kind = as_type or kind
+
+        if not kind:
+            continue
+
+        if preloads:
+            preload_attrs = {
+                "rel": "preload",
+                "as": kind,
+                "href": url,
+                "crossorigin": crossorigin or None,
+            }
+
+            if kind == "font":
+                preload_attrs["type"] = preload_type
+
+            add_preload(f"<link {build_attrs(preload_attrs)} />")
+
+        if kind == "style":
+            tags.append(f'<link rel="stylesheet" href="{url}" />')
+        elif kind == "script":
+            script_attrs = {
+                "src": url,
+                "defer": attrs.get("defer", "defer"),
+                "async": attrs.get("async", None),
+                "type": attrs.get("type", None),
+                "crossorigin": crossorigin or None,
+            }
+            tags.append(f"<script {build_attrs(script_attrs)}></script>")
+        else:
+            # For fallback types like images, fonts, etc.
+            tags.append(f'<link rel="{kind}" href="{url}" />')
+
+    return mark_safe("\n".join(tags))
 
 
 # ---------===== Render preloads =====---------

@@ -27,7 +27,6 @@ from django.views.generic.base import TemplateView
 admin.autodiscover()
 
 urlpatterns = [
-    path("", include("apps.frontpage.urls"), name="index"),
     path("brands/", include("apps.brands.urls", namespace="brands")),
     # path("grappelli/", include("grappelli.urls")),  # grappelli URLS
     path("admin/", admin.site.urls),
@@ -37,6 +36,12 @@ urlpatterns = [
     ),
 ]
 
+front_pags_urls = (
+    [path("", include("apps.frontpage.urls"), name="index")],
+    "frontpage",
+)
+webstore_urls = ([], "webstore")
+
 js_info_dict = {
     "domain": "django",
     "packages": getattr(settings, "PROJECT_APPS"),
@@ -44,11 +49,13 @@ js_info_dict = {
 
 last_modified_date = timezone.now()
 urlpatterns += i18n_patterns(
+    path("", include(front_pags_urls, namespace="frontpage")),
+    path("webstore/", include(webstore_urls, namespace="webstore")),
     path(
-        "jsi18n/",
+        "system.js",
         last_modified(lambda req, **kw: last_modified_date)(
             JavaScriptCatalog.as_view(**js_info_dict)
         ),
         name="javascript-catalog",
-    )
+    ),
 )

@@ -1,0 +1,76 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Webstore\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-24 12:32+0000\n"
+"PO-Revision-Date: 2025-06-24 15:37+0300\n"
+"Last-Translator: Zaharia Constantin <constantin.zaharia@softgeek.ro>\n"
+"Language-Team: SoulRaven\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#: apps/siteSettings/templates/maintenance/503.html:4
+msgid "maintenanceTitlePage"
+msgstr "Magazin online in lucru"
+
+#: apps/siteSettings/templates/maintenance/503.html:22
+msgid "maintenanceWorkInProgressTitle"
+msgstr "Pagina in lucru"
+
+#: apps/siteSettings/templates/maintenance/503.html:32
+msgid "maintenanceAboutUsTitle"
+msgstr "Despre noi"
+
+#: apps/siteSettings/templates/maintenance/503.html:39
+msgid "maintenanceTrustBarConsulting"
+msgstr "Consultanta"
+
+#: apps/siteSettings/templates/maintenance/503.html:40
+msgid "maintenanceTrustBarConsultingDescription"
+msgstr "Personalul nostru specializat te va ajuta sa faci alegerea potrivita."
+
+#: apps/siteSettings/templates/maintenance/503.html:44
+msgid "maintenanceTrustBarDelivery"
+msgstr "Livrare rapida"
+
+#: apps/siteSettings/templates/maintenance/503.html:45
+msgid "maintenanceTrustBarDeliveryDescription"
+msgstr "Livram direct din stocurile producatorului sau al distribuitorului."
+
+#: apps/siteSettings/templates/maintenance/503.html:49
+msgid "maintenanceTrustBarPaymentMethods"
+msgstr "Metode de plata"
+
+#: apps/siteSettings/templates/maintenance/503.html:50
+msgid "maintenanceTrustBarPaymentMethodsDescription"
+msgstr "Alege plata care ti se potriveste."
+
+#: apps/siteSettings/templates/maintenance/503.html:59
+msgid "maintenanceSocialMediaTitle"
+msgstr "Social Media"
+
+#: apps/siteSettings/templates/maintenance/503.html:75
+msgid "maintenanceContactUsTitle"
+msgstr "Trimite un mesaj:"
+
+#: apps/siteSettings/templates/maintenance/503.html:83
+msgid "Location"
+msgstr "Locatie:"
+
+#: apps/siteSettings/templates/maintenance/503.html:88
+msgid "Email:"
+msgstr ""
+
+#: apps/siteSettings/templates/maintenance/503.html:93
+msgid "Phone"
+msgstr "Telefon:"

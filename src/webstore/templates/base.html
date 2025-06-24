@@ -1,28 +1,57 @@
-{% extends "skeletron.html" %}
 {% load static i18n assets resource_hints %}
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:"ro" }}" {% if LANGUAGE_BIDI %}dir="rtl" {% endif %}class="{% block html_class %}{% endblock %}">
+<head>
 {% block begin_head %}
 	<meta charset="utf-8">
 	<title>{% block title %}{{ global_seo.title }}{% endblock %} | {{ global_seo.name }}</title>
 	<base href="{{ request.build_absolute_uri|slice:":-1" }}">
 	{% resource_hints %}
 	{% render_preloads %}
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	{% block meta_basic %}
+		{% include "./inc/meta_basic.html" %}
+	{% endblock %}
+	{% block meta_tags %}
+		{% include "./inc/open_graph.html" %}
+		{% include "./inc/meta_twitterCards.html" %}
+	{% endblock %}
 	{% block meta_icons %}
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		{% include "./inc/meta_icons.html" %}
 		<link rel="canonical" href="{{ canonical_url|default:request.build_absolute_uri }}" />
 	{% endblock %}
-	{% block meta_tags %}
-		{% include "./inc/meta_tags.html" %}
+	{% block font_header %}{% endblock font_header %}
+	{% block end_head %}
+		{% webpack_asset 'bootstrap.css,main.css' %}
 	{% endblock %}
-{% block blockbots %}{% endblock %}
 {% endblock %}
-{% block end_head %}
-	{% webpack_asset 'bootstrap-css.css,css/bootstrap-icons.css,style.css' %}
+</head>
+<body class="{% block bodyclass %}{% endblock %}" onload="{% block bodyonload %}{% endblock %}">
+{% block body %}
+<div class="wrapper">
+{% block nav_header %}{% endblock nav_header %}
+{% block nav_sidebar %}{% endblock nav_sidebar %}
+{% block content_wrapper %}
+	{% block content_header %}{% endblock content_header %}
+	{% block content_outer %}
+		{% block messages %}{% endblock messages %}
+		{% block content_block_wrap %}
+			{% block content %}{% endblock content %}
+		{% endblock content_block_wrap %}
+	{% endblock content_outer %}
+</div>
+{% endblock content_wrapper %}
+{% endblock body %}
+{% block javascript %}
+	{% webpack_asset 'runtime.js,vendor/jquery.js,vendor/bootstrap.js,vendor/popperjs-core.js' %}
+	{% webpack_asset 'jquery.js,bootstrap-js.js' %}
 {% endblock %}
-{% block extrascript %}
-	{% webpack_asset 'runtime.js,vendor/bootstrap.js,vendor/popperjs-core.js,bootstrap-js.js' %}
-{% endblock %}
-{% block initscript %}
+{% block extraJS %}
+	<script src="{% url 'javascript-catalog' %}"></script>
 	{% webpack_asset 'main.js' %}
 {% endblock %}
+{% block extra_footer %}{% endblock %}
+</body>
+</html>

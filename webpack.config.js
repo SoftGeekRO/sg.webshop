@@ -7,22 +7,26 @@
  * Last Modified: 23-05-2025 18:12:25 EEST
  */
 
-const path = require('path');
-const fs = require('fs');
+require('dotenv').config({ path: './.env' });
 
-const webpack = require('webpack');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
-const { SubresourceIntegrityPlugin } = require('webpack-subresource-integrity');
-const autoprefixer = require('autoprefixer');
+const path = require('path'),
 
-const isProd = process.env.NODE_ENV === 'production';
+  webpack = require('webpack'),
+  MiniCssExtractPlugin = require('mini-css-extract-plugin'),
+  {CleanWebpackPlugin} = require('clean-webpack-plugin'),
+  {WebpackManifestPlugin} = require('webpack-manifest-plugin'),
+  CopyWebpackPlugin = require('copy-webpack-plugin'),
+  RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts'),
+  { SubresourceIntegrityPlugin } = require('webpack-subresource-integrity'),
+  autoprefixer = require('autoprefixer'),
 
-// 🔁 Shared output paths
-const outputPath = path.resolve(__dirname, 'resources', 'dist',  'wp');
+  isProd = process.env.NODE_ENV === 'production',
+
+  publicPath = process.env.STATIC_SUBDOMAIN + 'wp/',
+
+  // 🔁 Shared output paths
+  outputPath = path.resolve(__dirname, 'resources', 'dist',  'wp');
+
 
 // Utility functions for naming
 function getPackageFolderName(filePath) {
@@ -63,33 +67,56 @@ const appConfig = {
   name: 'appConfig',
   mode: isProd ? 'production' : 'development',
   entry: {
-    main: path.resolve(__dirname, 'resources', 'webpack', 'js', 'main.js'),
-    style: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'style.scss'),
-    "bootstrap-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'bootstrap.scss'),
-    "bootstrap-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'bootstrap.js'),
-    "admin-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin.scss'),
-    "admin-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin.js'),
-    "admin-lte-css": path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin-lte.scss'),
-    "admin-lte-js": path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin-lte.js'),
-    tagifyCss: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'tagify', 'tagify.scss'),
-    tagifyJs: path.resolve(__dirname, 'resources', 'webpack', 'js', 'tagify.js'),
-    fontAwesome: path.resolve(__dirname, 'resources', 'webpack', 'scss', 'font-awesome.scss'),
+    main: [
+      path.resolve(__dirname, 'resources', 'webpack', 'js', 'main.js'),
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'main.scss'),
+    ],
+    admin: [
+      path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin.js'),
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin.scss')
+    ],
+    "admin-lte": [
+      path.resolve(__dirname, 'resources', 'webpack', 'js', 'admin-lte.js'),
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'admin-lte.scss')
+    ],
+    jquery: [
+      path.resolve(__dirname, 'resources', 'webpack', 'js', 'jquery.js'),
+    ],
+    tagify: [
+      path.resolve(__dirname, 'resources', 'webpack', 'js', 'tagify.js'),
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'tagify', 'tagify.scss')
+    ],
+    bootstrap: [
+      path.resolve(__dirname, 'resources', 'webpack', 'js', 'bootstrap.js'),
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'bootstrap.scss'),
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'bootstrap-icons.scss'),
+    ],
+    maintenance: [
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'maintenance.scss'),
+    ],
+    fontAwesome: [
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'font-awesome.scss'),
+    ],
+    pygments: [
+      path.resolve(__dirname, 'resources', 'webpack', 'scss', 'pygments.scss'),
+    ],
   },
   output: {
     filename: isProd ? 'js/[name].[contenthash].js' : 'js/[name].js',
     assetModuleFilename: 'assets/[name][ext][query]',
     path: outputPath,
-    publicPath: '/static/wp', // necessary for dynamic loading
+    publicPath: publicPath, // necessary for dynamic loading
     crossOriginLoading: "anonymous", // for SRI functionality
     clean: true,
     asyncChunks: true // @TODO: test if is working right on production
   },
-  // externalsType: 'commonjs',
-  // externals: {
-  //   'ts-loader': 'ts-loader',
-  //   jquery: "jQuery",
-  //   Tagify: 'Tagify',
-  // },
+  externalsType: 'commonjs',
+  externals: {
+    'ts-loader': 'ts-loader',
+    'mermaid': 'mermaid'
+    //jquery: "jQuery",
+    //Tagify: 'Tagify',
+  },
 
   module: {
     rules: [
@@ -125,17 +152,40 @@ const appConfig = {
         }
       },
       {
-        test: /\.(scss|css)$/i,
+        test: /\.css$/i,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+              url: true, // optional: disable URL resolving if not needed
+              modules: {
+                mode: false,
+              },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(s[ac]ss)$/i,
         use: [
           {
             loader: MiniCssExtractPlugin.loader,
             options: {
-              publicPath: '../' // optional
+              publicPath: publicPath // optional
             }
           },
           {
             // Interprets `@import` and `url()` like `import/require()` and will resolve them
-            loader: 'css-loader'
+            loader: 'css-loader',
+            options: {
+              // Enable alias resolution in CSS:
+              url: true,
+              import: true,
+              sourceMap: true,
+              esModule: false,
+            },
           },
           {
             // Loader for webpack to process CSS with PostCSS
@@ -152,14 +202,15 @@ const appConfig = {
             // Loads a SASS/SCSS file and compiles it to CSS
             loader: 'sass-loader',
             options: {
+              additionalData: `$publicImgURL: "${process.env.STATIC_SUBDOMAIN}img";`,
               sassOptions: {
-                // Optional: Silence Sass deprecation warnings. See note below.
                 silenceDeprecations: [
                   'mixed-decls',
                   'color-functions',
                   'global-builtin',
                   'import'
-                ]
+                ],
+                outputStyle: "compressed",
               }
             }
           }
@@ -170,12 +221,15 @@ const appConfig = {
         test: /\.(png|jpe?g|svg|gif|webp)$/i,
         type: 'asset/resource',
         generator: {
-          //filename: 'images/[name][ext][query]'
+          //filename: '[name][ext][query]',
           filename: (pathData) => {
             const pkg = getPackageFolderName(pathData.filename),
               fileName = path.basename(pathData.filename);
-            return `img/${pkg}/${fileName}`;
-          }
+            //return `img/${pkg}/${fileName}`;
+            return '[name][ext][query]';
+          },
+          publicPath: publicPath,
+          //emit: false, // <- prevent emitting to dist/img/
         }
       },
       {
@@ -188,31 +242,18 @@ const appConfig = {
           }
         }
       },
-      // Fonts
-      // For woff/woff2 fonts
-      {
-        test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        type: 'asset/resource',
-        generator: {
-          //filename: 'fonts/[name][ext][query]' // Output path
-          filename: (pathData) => {
-            const pkg = getPackageFolderName(pathData.filename);
-            const fileName = path.basename(pathData.filename);
-            return `fonts/${pkg}/${fileName}`;
-          }
-        }
-      },
       // For ttf/eot/svg fonts
       {
-        test: /\.(woff2?|ttf|eot|svg|otf)(\?[\s\S]+)?$/,
+        test: /\.(woff2?|ttf|eot|svg|otf)(\?[\s\S]+)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
         type: 'asset/resource',
         generator: {
-          //filename: 'fonts/[name][ext][query]'
-          filename: (pathData) => {
-            const pkg = getPackageFolderName(pathData.filename);
-            const fileName = path.basename(pathData.filename);
-            return `fonts/${pkg}/${fileName}`;
-          }
+          filename: 'fonts/[name][ext][query]',
+          //publicPath: '../wp/', // relative path from CSS to fonts
+          // filename: (pathData) => {
+          //   const pkg = getPackageFolderName(pathData.filename);
+          //   const fileName = path.basename(pathData.filename);
+          //   return `fonts/${pkg}/${fileName}`;
+          // }
         }
       },
     ]
@@ -259,7 +300,7 @@ const appConfig = {
       cleanOnceBeforeBuildPatterns: ['**/*', '!loader.js', '!loader.*.js'],
       cleanAfterEveryBuildPatterns: []
     }),
-    new RemoveEmptyScriptsPlugin(),
+    new RemoveEmptyScriptsPlugin({ verbose: isProd !== true }),
     new MiniCssExtractPlugin({
       filename: (pathData) => {
         let name = pathData.chunk.name || 'main';
@@ -300,10 +341,10 @@ const appConfig = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        {
-          from: path.resolve(__dirname, 'node_modules/bootstrap-icons/font/bootstrap-icons.css'),
-          to: path.resolve(__dirname, 'resources', 'dist', 'wp', 'css', 'bootstrap-icons.css')
-        },
+        // {
+        //   from: path.resolve(__dirname, 'resources', 'public/'),
+        //   to: path.resolve(__dirname, 'resources', 'dist', )
+        // },
         {
           from: path.resolve(__dirname, 'node_modules/bootstrap-icons/font/fonts'),
           to: path.resolve(__dirname, 'resources', 'dist', 'wp', 'fonts')
@@ -331,7 +372,10 @@ const appConfig = {
   resolve: {
     alias: {
       '@js': path.resolve(__dirname, 'src/js'),
-      '@scss': path.resolve(__dirname, 'src/scss')
+      '@scss': path.resolve(__dirname, 'src/scss'),
+      //'@img': path.resolve(__dirname, 'public/img/'),
+      '@publicImgROOT': path.resolve(__dirname, 'resources', 'public', 'img'),
+      '@publicImgURL': 'https:' + process.env.STATIC_SUBDOMAIN + 'img'
     },
     extensions: ['.tsx', '.ts', '.js', 'jsx', '.scss']
   },
@@ -340,6 +384,12 @@ const appConfig = {
     ignored: /node_modules/,
     aggregateTimeout: 300,
     poll: 500 // or set to `false` to use native file system events
+  },
+  stats: {
+    errorDetails: true,
+    errorStack: true,
+    errors: true,
+    assets: true,
   }
 };
 

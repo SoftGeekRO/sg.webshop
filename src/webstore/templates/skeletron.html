@@ -1,24 +1,11 @@
 {% load i18n static %}
 {#{% spaceless %}#}
-<!DOCTYPE html>
-{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
-<html lang="{{ LANGUAGE_CODE|default:"en" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}class="{% block html_class %}{% endblock %}">
-<head>
-{% block begin_head %}
-	{% block meta_icons %}{% endblock %}
-	{% block preloads_fonts %}{% endblock %}
-	{% block preloads_css %}{% endblock %}
-	{% block preloads_js %}{% endblock %}
-	{% block meta_tags %}{% endblock %}
-{% endblock %}
+
 {% block base_head %}{% endblock %}
 {% block end_head %}{% endblock %}
-</head>
-<body class="{% block bodyclass %}{% endblock %}" onload="{% block bodyonload %}{% endblock %}">
-<main class="container py-4">
-	{% block content %}{% endblock %}
-</main>
-{% include "inc/footer.html" %}
+
+
+
 {% block extrascript %}{% endblock %}
 {% block initscript %}{% endblock %}
 {% block end_body %}{% endblock %}

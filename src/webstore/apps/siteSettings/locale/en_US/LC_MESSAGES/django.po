@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Webstore\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-24 12:32+0000\n"
+"PO-Revision-Date: 2025-06-24 15:36+0300\n"
+"Last-Translator: Zaharia Constantin <constantin.zaharia@softgeek.ro>\n"
+"Language-Team: SoulRaven\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.6\n"
+
+#: apps/siteSettings/templates/maintenance/503.html:4
+msgid "maintenanceTitlePage"
+msgstr "Webstore Work in Progress"
+
+#: apps/siteSettings/templates/maintenance/503.html:22
+msgid "maintenanceWorkInProgressTitle"
+msgstr "Maintenance mode"
+
+#: apps/siteSettings/templates/maintenance/503.html:32
+msgid "maintenanceAboutUsTitle"
+msgstr "About Us"
+
+#: apps/siteSettings/templates/maintenance/503.html:39
+msgid "maintenanceTrustBarConsulting"
+msgstr "Consulting"
+
+#: apps/siteSettings/templates/maintenance/503.html:40
+msgid "maintenanceTrustBarConsultingDescription"
+msgstr "Our expert team will guide you to the right choice."
+
+#: apps/siteSettings/templates/maintenance/503.html:44
+msgid "maintenanceTrustBarDelivery"
+msgstr "Fast Delivery"
+
+#: apps/siteSettings/templates/maintenance/503.html:45
+msgid "maintenanceTrustBarDeliveryDescription"
+msgstr "Items ship straight from the manufacturer or distributor—fast and fresh!"
+
+#: apps/siteSettings/templates/maintenance/503.html:49
+msgid "maintenanceTrustBarPaymentMethods"
+msgstr "Payments methods"
+
+#: apps/siteSettings/templates/maintenance/503.html:50
+msgid "maintenanceTrustBarPaymentMethodsDescription"
+msgstr "Pay your way - choose what suits you best!"
+
+#: apps/siteSettings/templates/maintenance/503.html:59
+msgid "maintenanceSocialMediaTitle"
+msgstr "Social Media"
+
+#: apps/siteSettings/templates/maintenance/503.html:75
+msgid "maintenanceContactUsTitle"
+msgstr "Contact us:"
+
+#: apps/siteSettings/templates/maintenance/503.html:83
+msgid "Location"
+msgstr ""
+
+#: apps/siteSettings/templates/maintenance/503.html:88
+msgid "Email:"
+msgstr ""
+
+#: apps/siteSettings/templates/maintenance/503.html:93
+msgid "Phone"
+msgstr ""

@@ -37,17 +37,15 @@ TEMPLATES = [
                 "django.template.loaders.app_directories.Loader",
             ],
             "libraries": {
-                # load the webpack template tags
-                # "webpack_manifest": "webstore.templatetags.webpack",
-                # "webpack_asset": "webstore.templatetags.webpack",
-                # "webpack_preload": "webstore.templatetags.webpack",
                 # resolve vars inside the static paths inside the template
                 "static_dynamic": "webstore.templatetags.static_extras",
                 # load dns-prefetch and preload templatetags for head html
                 "resource_hints": "webstore.templatetags.resource_hints",
-                # load google fonts from cdn or local
-                # "fonts": "webstore.templatetags.fonts",
+                # load assets from local or remote and also expose the preloads
+                # check also for webpack assets and PWA manifests
                 "assets": "webstore.templatetags.assets",
+                # use and render markdown files inside the templates
+                "markdown": "webstore.templatetags.markdown",
             },
         },
     },

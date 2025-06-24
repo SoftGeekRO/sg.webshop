@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "ro_RO"
 
 USE_I18N = True
 USE_L10N = True

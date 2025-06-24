@@ -8,7 +8,12 @@ MAINTENANCE_MODE_STATE_BACKEND = (
 MAINTENANCE_MODE_TEMPLATE = "maintenance/503.html"
 # list of urls that will not be affected by the maintenance-mode
 # urls will be used to compile regular expressions objects
-MAINTENANCE_MODE_IGNORE_URLS = ("/robots.txt", "/webstore", "/favicon.ico")
+MAINTENANCE_MODE_IGNORE_URLS = (
+    "/robots.txt",
+    "/webstore",
+    "/favicon.ico",
+    "/en/system.js",
+)
 
 # if True admin site will not be affected by the maintenance-mode page
 MAINTENANCE_MODE_IGNORE_ADMIN_SITE = True

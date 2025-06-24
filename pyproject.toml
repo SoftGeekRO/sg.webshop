@@ -32,6 +32,16 @@ python-dotenv = "^1.0"  # For environment variables
 whitenoise = "^6.4"  # For static files
 gunicorn = "^23.0"  # For production WSGI server
 
+# Best attempt to create slugs from unicode strings while keeping it DRY.
+python-slugify = "^8.0.2" # see: https://github.com/un33k/python-slugify
+
+# Markdown
+markdown = "^3.8.2" # parses Markdown to HTML
+bleach = "^6.2.0" # sanitizes the output
+pygments = "^2.19.2" # syntax highlighting for code blocks
+pymdown-extensions = "^10.16"
+tinycss2 = "^1.4.0"
+
 [tool.poetry.group.dev.dependencies]
 black = "^25.1"
 flake8 = "^7.2"
